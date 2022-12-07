@@ -1,10 +1,15 @@
 library(tidyverse)
 library(dplyr)
+
+#install.packages("here") #<- install once for location of the files!
+library(here) #<- for Location of the files!
 #install.packages("pastecs")
 #(pastecs)
 
-DS <- read.table("OneDrive - Hochschule Luzern/BUINT Data/r Proj/data/timeseries-data-mortgage.csv", sep=",", quote=",", comment.char="", na.strings = "NA", colClasses = NA)
+#getwd() <-always starts at this level here!
+#here("data", "quarterly-data-us-mortgage.csv") #<- example for subfolder data, file quarterly-data-us-mortgage.csv
 
+DS <- read.table(here("data", "quarterly-data-us-mortgage.csv"), sep=",", quote=",", comment.char="", na.strings = "NA", colClasses = NA)
 View(DS)
 
 #let's rename the columns from V1, V2,... to the names (they were manually extracted form the "auto-mpg.name" file

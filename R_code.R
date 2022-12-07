@@ -4,16 +4,23 @@ library(scales)
 #### IMPORT DATA
 
 # Specify working directory7
-setwd("C:/Users/leabo/Desktop/Project")
+#install.packages("here") #<- install once for location of the files!
+library(here) #<- for Location of the files!
+
+#getwd() <-always starts at this level here!
+#here("data", "real_estate_prices_CH.csv") #<- example for subfolder data, file quarterly-data-us-mortgage.csv
+
+
+#setwd("C:/Users/leabo/Desktop/Project")
 
 # Assign working directory as path to object
-wd <- "C:/Users/leabo/Desktop/Project"
+#wd <- "C:/Users/leabo/Desktop/Project"
 
 # list file names in working directory
 list.files(wd, all.files=FALSE, full.names=FALSE, pattern=".csv")
 
 # import/read in data files
-real.estate.prices.CH <- read.csv("real_estate_prices_CH.csv")
+real.estate.prices.CH <- read.csv(here("data", "real_estate_prices_CH.csv"))
 View(real.estate.prices.CH)
 
 # add new row for averages
