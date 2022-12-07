@@ -1,5 +1,6 @@
 library(tidyverse)
 library(scales)
+library(ggplot2)
 
 #### IMPORT DATA
 
@@ -17,11 +18,13 @@ library(here) #<- for Location of the files!
 #wd <- "C:/Users/leabo/Desktop/Project"
 
 # list file names in working directory
-list.files(wd, all.files=FALSE, full.names=FALSE, pattern=".csv")
+#list.files(wd, all.files=FALSE, full.names=FALSE, pattern=".csv")
 
 # import/read in data files
 real.estate.prices.CH <- read.csv(here("data", "real_estate_prices_CH.csv"))
 View(real.estate.prices.CH)
+
+#hehe
 
 # add new row for averages
 # privately owned apartments
