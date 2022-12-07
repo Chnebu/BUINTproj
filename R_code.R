@@ -46,7 +46,7 @@ View(real.estate.prices.CH)
 #convert to date
 date.real.estate.prices.CH <- as.character(real.estate.prices.CH$Property.type)
 real.estate.prices.CH$Property.type <- as.Date(date.real.estate.prices.CH, formats = "%Y/%m/%d")
-
+##iwashere
 # plot
 ggplot(real.estate.prices.CH  %>% filter(real.estate.prices.CH$Property.type > '2009-01-01'), aes(x = Property.type))+
   geom_point(aes(y = private.apartements), na.rm = TRUE, size = 2, color = "red")+
@@ -55,3 +55,4 @@ ggplot(real.estate.prices.CH  %>% filter(real.estate.prices.CH$Property.type > '
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("real estate prices CH")
+
