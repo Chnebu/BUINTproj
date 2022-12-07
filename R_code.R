@@ -6,7 +6,7 @@ library(ggplot2)
 
 # Specify working directory7
 #install.packages("here") #<- install once for location of the files!
-library(here) #<- for Location of the files!
+#library(here) #<- for Location of the files!
 
 #getwd() <-always starts at this level here!
 #here("data", "real_estate_prices_CH.csv") #<- example for subfolder data, file quarterly-data-us-mortgage.csv
@@ -42,3 +42,16 @@ real.estate.prices.CH <- cbind(real.estate.prices.CH, apartment.buildings = apar
 # delete rows from different sources, only keep averages
 real.estate.prices.CH <- real.estate.prices.CH[,-2:-14]
 View(real.estate.prices.CH)
+
+#convert to date
+date.real.estate.prices.CH <- as.character(real.estate.prices.CH$Property.type)
+real.estate.prices.CH$Property.type <- as.Date(date.real.estate.prices.CH, formats = "%Y/%m/%d")
+
+# plot
+ggplot(real.estate.prices.CH  %>% filter(real.estate.prices.CH$Property.type > '2009-01-01'), aes(x = Property.type))+
+  geom_point(aes(y = private.apartements), na.rm = TRUE, size = 2, color = "red")+
+  geom_point(aes(y = single.family.houses), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = apartment.buildings), na.rm = TRUE, size = 2, color = "green")+
+  scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  ggtitle("real estate prices CH")
