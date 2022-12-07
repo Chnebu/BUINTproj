@@ -45,10 +45,10 @@ View(real.estate.prices.CH)
 
 #convert to date
 date.real.estate.prices.CH <- as.character(real.estate.prices.CH$Date)
-real.estate.prices.CH$Property.Date <- as.Date(date.real.estate.prices.CH, formats = "%Y/%m/%d")
-##iwashere
+real.estate.prices.CH$Date <- as.Date(date.real.estate.prices.CH, formats = "%Y/%m/%d")
+
 # plot
-ggplot(real.estate.prices.CH  %>% filter(real.estate.prices.CH$Date > '2009-01-01'), aes(x = Date))+
+ggplot(real.estate.prices.CH  %>% filter(real.estate.prices.CH$Date > '2009/01/01'), aes(x = Date))+
   geom_point(aes(y = private.apartements), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = single.family.houses), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = apartment.buildings), na.rm = TRUE, size = 2, color = "green")+
