@@ -37,6 +37,8 @@ View(us.house.prices)
 private.apartements.average <- c(rowMeans(ch.house.prices[,2:6], na.rm = TRUE))
 ch.house.prices <- cbind(ch.house.prices, private.apartements = private.apartements.average)
 
+#view(real.estate.prices.CH[,2:6])
+
 # single family houses
 single.family.houses.average <- c(rowMeans(ch.house.prices[,7:11], na.rm = TRUE))
 ch.house.prices <- cbind(ch.house.prices, single.family.houses = single.family.houses.average)
