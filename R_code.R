@@ -286,8 +286,13 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
   labs(caption = "Green: 30y, Red: 15y, Blue: 5y, Mortgages & Fees, Discount points")+
   ggtitle("US Mortgage Rates")
   
+
+  # what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
+  # risk for them during times of rising rates, bc. customers have to ajust in 5y.)
+
   # what can we see: Banks somehow wanted to sell more short-term loans (probably less 
   # risk for them during rising rates....)
+
 
 
   
