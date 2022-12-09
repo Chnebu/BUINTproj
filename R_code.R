@@ -165,11 +165,11 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
   geom_point(aes(y = Origination.Fees.and.Discount.Points.for.5.Y), na.rm = TRUE, size = 2, color = "blue")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
-  labs(caption = "Green: 30y, Red: 15y, Blue: 5y, Mortgages & Fees, Discount points")
+  labs(caption = "Green: 30y, Red: 15y, Blue: 5y, Mortgages & Fees, Discount points")+
   ggtitle("US Mortgage Rates")
   
-  # what can we see: Banks somehow wanted to sell more short-term loans (probably less 
-  # risk for them during rising rates....)
+  # what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
+  # risk for them during times of rising rates, bc. customers have to ajust in 5y.)
   
 ################### US House Prices ###################################
 
