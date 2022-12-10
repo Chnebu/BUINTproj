@@ -25,10 +25,12 @@ ch.house.prices <- read.csv(here("data", "ch-house-prices.csv"))
 ch.mortgage.rates <- read.csv(here("data", "ch-mortgage-rates.csv"))
 us.mortgage.rates <- read.csv(here("data", "us-mortgage-rates.csv"))
 us.house.prices <- read.csv(here("data", "us-house-prices.csv"))
+us.house.prices.2nd.df <- read.csv(here("data", "zillowPriceIndex.csv"))
 View(ch.house.prices)
 View(ch.mortgage.rates)
 View(us.mortgage.rates)
 View(us.house.prices)
+View(us.house.prices.2nd.df)
 
 ################## CH House Prices #######################################################################
 
@@ -201,7 +203,7 @@ title("Fixed interest rates")
 
 
 
-# plot Sum -> variable red, fixed blue
+# plot Sum -> NL BR variable = red, Linked BR variable = orange, fixed = blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k.), na.rm = TRUE, size = 2, color = "red")+
@@ -209,11 +211,11 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "red")+
   
-  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = Sum.of.N.Loan.Mortgages.with.fixed.interest.rates..CHF.100k...500k.), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.500k...1.Mio.), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.1.Mio...5.Mio.), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "red")+
+  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "orange")+
+  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.100k...500k.), na.rm = TRUE, size = 2, color = "orange")+
+  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.500k...1.Mio.), na.rm = TRUE, size = 2, color = "orange")+
+  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.1.Mio...5.Mio.), na.rm = TRUE, size = 2, color = "orange")+
+  geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "orange")+
   
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.with.fixed.interest.rates..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.with.fixed.interest.rates..CHF.100k...500k.), na.rm = TRUE, size = 2, color = "blue")+
@@ -223,7 +225,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
-  ggtitle("CH Mortgage Rates")
+  ggtitle("CH Sum of Loan Mortgages")
 
 
 
@@ -325,7 +327,10 @@ us.correlation <- cor(us$us.fixed.rate.average, us$Real.Estate.Prices, use = "co
 #   CORRELATION IS -0.2065972
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
-#### SOMETHING IS WRONG :(
+
+#### SOMETHING IS WRONG, correlation is  very little, can this be ? :(
+
+### We are gonna add another data set just to make sure we have accurate and treatable data
 
 
 
@@ -355,3 +360,39 @@ ggplot(ch, aes(x = Date))+
 scale_y_continuous(sec.axis = sec_axis(trans=~./100, name= "interest rates"))+
   labs(x = "time period", y = "house prices")+
   ggtitle("interest rates and house prices CH")
+
+
+############ reorder 2nd data set - US house prices #############################
+
+# create empty table (this is where the numbers are put in the loop)
+us.house.prices.second.try = data.frame(Date=character(0),all.homes=numeric(0), single.family=numeric(0), 
+                 condos=numeric(0), one.room=numeric(0), five.rooms=numeric(0))
+print(us.house.prices.second.try)
+
+## CONVERT TO QUARTILES
+# matrix starts at 1
+i <- 1
+# 2 because 1 is the date
+j <- 1 
+# loop through NL BR numbers and add them to new table
+for(i in 1: nrow(us.house.prices.2nd.df))
+{
+  for (j in 1: ncol(us.house.prices.2nd.df))
+  {
+    if(i %% 3 == 0)
+    {
+      if(j == 1)
+        {
+          us.house.prices.second.try[nrow(us.house.prices.second.try) + 1,] <- c(Date=us.house.prices.2nd.df[i-2,1], 
+                                                                                 NA, NA, NA, NA, NA)
+        }                 
+      else
+        {
+          us.house.prices.second.try[i/3,j] = mean(us.house.prices.2nd.df[i-2,j], 
+                                            us.house.prices.2nd.df[i-1,j], 
+                                            us.house.prices.2nd.df[i,j]) 
+        }             
+    }
+  }
+}
+View(us.house.prices.second.try)
