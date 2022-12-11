@@ -1,6 +1,9 @@
 library(tidyverse)
 library(scales)
 library(ggplot2)
+library(reshape)
+library(reshape2)
+#install.packages("reshape2")
 
 #### IMPORT DATA
 
@@ -34,6 +37,31 @@ View(us.house.prices.2nd.df)
 
 ################## CH House Prices #######################################################################
 
+# for analysis purposes
+# reshape table so that column name is an variable
+ch.house.prices.for.boxplot <- melt(ch.house.prices, na.rm = FALSE, name = 'columns')
+View(ch.house.prices.for.boxplot)
+
+ch.house.prices.for.boxplot %>%
+  ggplot(aes(x = variable, y = value), na.rm = TRUE)+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 60,vjust = 0.5,hjust = 1))+
+  ggtitle("Boxplot CH House Prices - to find outliers")
+# we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
+# and "privately.owned.appartments.3" (the outliers are too high)
+
+# let's correct this and filter these out in the original dataset "ch.house.prices"
+summary(ch.house.prices$Privately.owned.apartments.3)
+#    Min.  1st Qu.  Median    Mean   3rd Qu.    Max. 
+#   142.3   169.5   178.1    173.4   181.2     185.1 
+
+summary(ch.house.prices$Privately.owned.apartments.4)
+#   Min.   1st Qu.  Median    Mean   3rd Qu.    Max. 
+#   140.9   174.8   189.1    186.0   197.9     234.1 
+# this means all values above 234.1 should be removed
+
+# should we remove the outliers? if so how???
+
 # add new column for averages
 # privately owned apartments
 private.apartements.average <- c(rowMeans(ch.house.prices[,2:6], na.rm = TRUE))
@@ -51,7 +79,7 @@ ch.house.prices <- cbind(ch.house.prices, apartment.buildings = apartment.buildi
 
 # create total average 
 house.prices.average <- c(rowMeans(ch.house.prices[,14:16], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, tatal.house.prices.average = house.prices.average)
+ch.house.prices <- cbind(ch.house.prices, total.house.prices.average = house.prices.average)
 
 # delete rows from different sources, only keep averages
 ch.house.prices <- ch.house.prices[,-2:-14]
@@ -79,9 +107,6 @@ ggplot(ch.house.prices  %>% filter(ch.house.prices$Date > '2009/01/01'), aes(x =
 #convert to date
 date.ch.mortgage.rates <- as.character(ch.mortgage.rates$Date)
 ch.mortgage.rates$Date <- as.Date(date.ch.mortgage.rates, formats = "%Y/%m/%d")
-
-names(ch.mortgage.rates)
-
 
 # plot Average -> variable red, fixed blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
@@ -151,6 +176,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
 ### DECISION -> I included EVERYTHING, because they belong to the same category -> Jan you can change it if you want :)
 
 
+# Add averages as a new column to the table "ch.mortgage.rates"
 # VARIABLE INTEREST RATES - NL.BR
 average.int.rates.nl.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.",  
                                                            "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k.", 
@@ -158,8 +184,6 @@ average.int.rates.nl.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mo
                                                            "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.",
                                                            "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.")),
                                                             na.rm = TRUE)
-ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.int.rates.nl.br = average.int.rates.nl.br)
-
 # VARIABLE INTEREST RATES - LINKED BR
 average.int.rates.linked.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.500k...1.Mio.",  
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.1.Mio...5.Mio.", 
@@ -167,8 +191,6 @@ average.int.rates.linked.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.",
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.100k...500k.")),
                                                              na.rm = TRUE)
-ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.int.rates.linked.br = average.int.rates.linked.br)
-
 # FIXED INTEREST RATES
 average.fixed.int.rates <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.with.fixed.interest.rates..CHF.50k...100k.",  
                                                               "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.100k...500k.", 
@@ -177,29 +199,8 @@ average.fixed.int.rates <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mo
                                                               "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.5.Mio...15.Mio.")),
                                                               na.rm = TRUE)
 ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.fixed.int.rates = average.fixed.int.rates)
+View(ch.mortgage.rates)
 
-
-# creating some boxplots
-boxplot(select(ch.mortgage.rates, c("Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.",  
-                                    "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k.", 
-                                    "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.500k...1.Mio.",
-                                    "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.",
-                                    "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.")))+
-  title("Variable interest rates NL BR")    # there is an error because of NA value
-
-boxplot(select(ch.mortgage.rates, c("Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.500k...1.Mio.",  
-                                    "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.1.Mio...5.Mio.", 
-                                    "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.5.Mio...15.Mio.",
-                                    "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.",
-                                    "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.100k...500k.")))
-title("Variable interest rates linked BR")
-
-boxplot(select(ch.mortgage.rates, c("Average.of.M..Mortgages.with.fixed.interest.rates..CHF.50k...100k.",  
-                                    "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.100k...500k.", 
-                                    "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.500k...1.Mio.",
-                                    "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.1.Mio...5.Mio.",
-                                    "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.5.Mio...15.Mio.")))
-title("Fixed interest rates")
 
 
 
@@ -342,11 +343,11 @@ View(ch)
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
-ch.correlation.fixed.int.rates <- cor(ch$ch.average.fixed.int.rates, ch$tatal.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.fixed.int.rates <- cor(ch$ch.average.fixed.int.rates, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.8785073
-ch.correlation.linked.br <- cor(ch$ch.average.int.rates.linked.br, ch$tatal.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.linked.br <- cor(ch$ch.average.int.rates.linked.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.6237408
-ch.correlation.nl.br <- cor(ch$ch.average.int.rates.nl.br, ch$tatal.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.nl.br <- cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.7066481
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
@@ -396,3 +397,52 @@ for(i in 1: nrow(us.house.prices.2nd.df))
   }
 }
 View(us.house.prices.second.try)
+
+# for analysis purposes
+# reshape table so that column name is an variable
+us.house.prices.second.try.for.boxplot <-melt(us.house.prices.second.try, id = c("Date"))
+View(us.house.prices.second.try.for.boxplot)
+us.house.prices.second.try.for.boxplot$value <- as.numeric(us.house.prices.second.try.for.boxplot$value)
+
+us.house.prices.second.try.for.boxplot %>%
+  ggplot(aes(x = variable, y = value), na.rm = TRUE)+
+  geom_boxplot()+
+  ggtitle("Boxplot US House Prices, 2nd data set - to find outliers")
+# we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
+# and "privately.owned.appartments.3" (the outliers are too high)
+
+us.house.prices.second.try.for.boxplot %>%
+  ggplot(aes(x = Date, y = value))+
+  geom_point(aes(na.rm = TRUE, color = variable))+
+  # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  ggtitle("Boxplot US House Prices")
+
+###### Join with other us data set ###################
+
+#convert to date
+date.us.house.prices.second.try <- as.character(us.house.prices.second.try$Date)
+us.house.prices.second.try$Date <- as.Date(date.us.house.prices.second.try, formats = "%Y/%m/%d")
+
+us <- full_join(us.house.prices.second.try, us, by = "Date")
+View(us)
+
+# transform data to numeric data type
+us$single.family <- as.numeric(us$single.family)
+us$all.homes <- as.numeric(us$all.homes)
+us$condos <- as.numeric(us$condos)
+us$one.room <- as.numeric(us$one.room)
+us$five.rooms <- as.numeric(us$five.rooms)
+
+# compare new data set to old one in order to see if it is accurate
+us %>%
+  ggplot(aes(x = Date))+
+  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+# seems pretty acurrate -> very similar to five room data from new dataset
+
