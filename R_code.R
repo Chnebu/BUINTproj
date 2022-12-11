@@ -3,13 +3,14 @@ library(scales)
 library(ggplot2)
 library(reshape)
 library(reshape2)
+library(here) #<- for Location of the files!
 #install.packages("reshape2")
 
 #### IMPORT DATA
 
 # Specify working directory7
 #install.packages("here") #<- install once for location of the files!
-library(here) #<- for Location of the files!
+
 
 #getwd() <-always starts at this level here!
 #here("data", "real_estate_prices_CH.csv") #<- example for subfolder data, file quarterly-data-us-mortgage.csv
@@ -29,11 +30,11 @@ ch.mortgage.rates <- read.csv(here("data", "ch-mortgage-rates.csv"))
 us.mortgage.rates <- read.csv(here("data", "us-mortgage-rates.csv"))
 us.house.prices <- read.csv(here("data", "us-house-prices.csv"))
 us.house.prices.2nd.df <- read.csv(here("data", "zillowPriceIndex.csv"))
-View(ch.house.prices)
-View(ch.mortgage.rates)
-View(us.mortgage.rates)
-View(us.house.prices)
-View(us.house.prices.2nd.df)
+#View(ch.house.prices)
+#View(ch.mortgage.rates)
+#View(us.mortgage.rates)
+#View(us.house.prices)
+#View(us.house.prices.2nd.df)
 
 ################## CH House Prices #######################################################################
 
@@ -293,10 +294,6 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
   # what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
   # risk for them during times of rising rates, bc. customers have to ajust in 5y.)
 
-  # what can we see: Banks somehow wanted to sell more short-term loans (probably less 
-  # risk for them during rising rates....)
-
-
 
   
 ################### US House Prices ##############################################
@@ -325,6 +322,7 @@ View(us)
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
 us.correlation <- cor(us$us.fixed.rate.average, us$Real.Estate.Prices, use = "complete.obs", method = "pearson")
+view(us.correlation)
 #   CORRELATION IS -0.2065972
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
@@ -370,7 +368,7 @@ us.house.prices.second.try = data.frame(Date=character(0),all.homes=numeric(0), 
                  condos=numeric(0), one.room=numeric(0), five.rooms=numeric(0))
 print(us.house.prices.second.try)
 
-## CONVERT TO QUARTILES
+## CONVERT TO QUARTILES -> Quarters?
 # matrix starts at 1
 i <- 1
 # 2 because 1 is the date
@@ -396,7 +394,7 @@ for(i in 1: nrow(us.house.prices.2nd.df))
     }
   }
 }
-View(us.house.prices.second.try)
+#View(us.house.prices.second.try)
 
 # for analysis purposes
 # reshape table so that column name is an variable
@@ -416,7 +414,7 @@ us.house.prices.second.try.for.boxplot %>%
   geom_point(aes(na.rm = TRUE, color = variable))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
-  ggtitle("Boxplot US House Prices")
+  ggtitle("US House Prices")
 
 ###### Join with other us data set ###################
 
@@ -428,21 +426,55 @@ us <- full_join(us.house.prices.second.try, us, by = "Date")
 View(us)
 
 # transform data to numeric data type
-us$single.family <- as.numeric(us$single.family)
-us$all.homes <- as.numeric(us$all.homes)
-us$condos <- as.numeric(us$condos)
-us$one.room <- as.numeric(us$one.room)
-us$five.rooms <- as.numeric(us$five.rooms)
+us$us.single.family <- as.numeric(us$single.family)
+us$us.all.homes <- as.numeric(us$all.homes)
+us$us.condos <- as.numeric(us$condos)
+us$us.one.room <- as.numeric(us$one.room)
+us$us.five.rooms <- as.numeric(us$five.rooms)
+
+#delete old Data from pre 2009.
+usfiltered2009 <- us[!(us$Date < '2009/01/01'),]
+chfiltered2009 <- ch[!(ch$Date < '2009/01/01'),]
+#View(chfiltered2009)
 
 # compare new data set to old one in order to see if it is accurate
-us %>%
+usfiltered2009 %>%
   ggplot(aes(x = Date))+
-  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = us.single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = us.all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = us.condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = us.one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = us.five.rooms), na.rm = TRUE, colour = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
   geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+  
 # seems pretty acurrate -> very similar to five room data from new dataset
 
+  
+  
+  
+  
+#totalPlot: All Data from both df - Baustjielle Jan
+# need:
+  # house prices US; 2 lines.
+  # house prices CH
+  
+allFiltered <- try(chfiltered2009[, "total.house.prices.average"])
+allFiltered <- chfiltered2009$total.house.prices.average
+colnames(allFiltered)[colnames(allFiltered) == "total.house.prices.average"] ="ch.average.house.price"
+View(allFiltered)
+
+ch.average.house.price
+allFiltered$us.average.interest.rate <- rowMeans(usfiltered2009[c(2, 3)], na.rm=TRUE)
+View(usfiltered2009)
+colMeans(df, na.rm=TRUE)
+
+allFiltered %>%
+  ggplot(aes(x = Date))+
+  #  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  #  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  #  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  #  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+#  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
