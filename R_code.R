@@ -185,6 +185,8 @@ average.int.rates.nl.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mo
                                                            "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.",
                                                            "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.")),
                                                             na.rm = TRUE)
+ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.int.rates.nl.br = average.int.rates.nl.br)
+
 # VARIABLE INTEREST RATES - LINKED BR
 average.int.rates.linked.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.500k...1.Mio.",  
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.1.Mio...5.Mio.", 
@@ -192,6 +194,8 @@ average.int.rates.linked.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.",
                                                             "Average.of.M..Mortgages.Var.Int.Rates...Linked.BR..CHF.100k...500k.")),
                                                              na.rm = TRUE)
+ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.int.rates.linked.br = average.int.rates.linked.br)
+
 # FIXED INTEREST RATES
 average.fixed.int.rates <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.with.fixed.interest.rates..CHF.50k...100k.",  
                                                               "Average.of.M..Mortgages.with.fixed.interest.rates..CHF.100k...500k.", 
@@ -339,13 +343,18 @@ view(us.correlation)
 ch <- full_join(ch.mortgage.rates, ch.house.prices, by = "Date")
 View(ch)
 
+ch$ch.average.int.rates.linked.br <- as.numeric(ch$ch.average.int.rates.linked.br)
+
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
-ch.correlation.fixed.int.rates <- cor(ch$ch.average.fixed.int.rates, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.fixed.int.rates <- cor(ch$ch.average.fixed.int.rates, ch$total.house.prices.average, 
+                                      use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.8785073
-ch.correlation.linked.br <- cor(ch$ch.average.int.rates.linked.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.linked.br <- cor(ch$ch.average.int.rates.linked.br, ch$total.house.prices.average, 
+                                use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.6237408
-ch.correlation.nl.br <- cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
+ch.correlation.nl.br <- cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, 
+                            use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.7066481
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
@@ -425,26 +434,27 @@ us.house.prices.second.try$Date <- as.Date(date.us.house.prices.second.try, form
 us <- full_join(us.house.prices.second.try, us, by = "Date")
 View(us)
 
+
 # transform data to numeric data type
-us$us.single.family <- as.numeric(us$single.family)
-us$us.all.homes <- as.numeric(us$all.homes)
-us$us.condos <- as.numeric(us$condos)
-us$us.one.room <- as.numeric(us$one.room)
-us$us.five.rooms <- as.numeric(us$five.rooms)
+us$single.family <- as.numeric(us$single.family)
+us$all.homes <- as.numeric(us$all.homes)
+us$condos <- as.numeric(us$condos)
+us$one.room <- as.numeric(us$one.room)
+us$five.rooms <- as.numeric(us$five.rooms)
 
 #delete old Data from pre 2009.
-usfiltered2009 <- us[!(us$Date < '2009/01/01'),]
-chfiltered2009 <- ch[!(ch$Date < '2009/01/01'),]
+# usfiltered2009 <- us[!(us$Date < '2009/01/01'),]
+# chfiltered2009 <- ch[!(ch$Date < '2009/01/01'),]
 #View(chfiltered2009)
 
 # compare new data set to old one in order to see if it is accurate
-usfiltered2009 %>%
+us %>%
   ggplot(aes(x = Date))+
-  geom_point(aes(y = us.single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = us.all.homes), na.rm = TRUE, colour = "orange")+
-  geom_point(aes(y = us.condos), na.rm = TRUE, colour = "dark green")+
-  geom_point(aes(y = us.one.room), na.rm = TRUE, colour = "blue")+
-  geom_point(aes(y = us.five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
   geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
   
@@ -452,29 +462,38 @@ usfiltered2009 %>%
 
   
   
-  
+  ################### Merge US and CH data ######################
+
+# before merging
+# add suffix us to all the column names US
+colnames(us) <- paste(colnames(us), "us", sep = ".")
+View(us)
+
+# add suffix us to all the column names CH
+colnames(ch) <- paste(colnames(ch), "ch", sep = ".")
+View(us)
   
 #totalPlot: All Data from both df - Baustjielle Jan
 # need:
   # house prices US; 2 lines.
   # house prices CH
   
-allFiltered <- try(chfiltered2009[, "total.house.prices.average"])
-allFiltered <- chfiltered2009$total.house.prices.average
-colnames(allFiltered)[colnames(allFiltered) == "total.house.prices.average"] ="ch.average.house.price"
-View(allFiltered)
-
-ch.average.house.price
-allFiltered$us.average.interest.rate <- rowMeans(usfiltered2009[c(2, 3)], na.rm=TRUE)
-View(usfiltered2009)
-colMeans(df, na.rm=TRUE)
-
-allFiltered %>%
-  ggplot(aes(x = Date))+
-  #  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-  #  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-  #  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-  #  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
-#  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+# allFiltered <- try(chfiltered2009[, "total.house.prices.average"])
+# allFiltered <- chfiltered2009$total.house.prices.average
+# colnames(allFiltered)[colnames(allFiltered) == "total.house.prices.average"] ="ch.average.house.price"
+# View(allFiltered)
+# 
+# ch.average.house.price
+# allFiltered$us.average.interest.rate <- rowMeans(usfiltered2009[c(2, 3)], na.rm=TRUE)
+# View(usfiltered2009)
+# colMeans(df, na.rm=TRUE)
+# 
+# allFiltered %>%
+#   ggplot(aes(x = Date))+
+#   #  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+#   geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+#   #  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+#   #  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+#   #  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+#   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+# #  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
