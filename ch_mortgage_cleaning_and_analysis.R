@@ -2,18 +2,11 @@ library(tidyverse)
 library(scales)
 library(ggplot2)
 library(tree)
+library(here)
 #install.packages("tree")
 
-# import/read in data files
-setwd("C:/Users/leabo/Desktop/")
 
-# Assign working directory as path to object
-wd <- "C:/Users/leabo/Desktop"
-
-# list file names in working directory
-list.files(wd, all.files=FALSE, full.names=FALSE, pattern=".csv")
-
-ch.mortgage.rates <- read.csv("ch-mortgage-rates.csv")
+ch.mortgage.rates <- read.csv(here("data", "ch-mortgage-rates.csv"))
 View(ch.mortgage.rates)
 
 #convert to date
