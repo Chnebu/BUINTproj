@@ -124,6 +124,8 @@ ch.mortgage.rates$Date <- as.Date(date.ch.mortgage.rates, formats = "%Y/%m/%d")
 
 summary(ch.mortgage.rates)
 View(ch.mortgage.rates)
+# remove NA values
+ch.mortgage.rates <- ch.mortgage.rates[-55,]
 
 # plot Average -> variable red, fixed blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
@@ -840,146 +842,147 @@ ggplot(final.data, aes(x = Date))+
 #   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
 # #  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
 
-
-
-
-
-####### PREDICTIVE ANALYTICS #####################################################
-####### trying to make a linear model ###########################################
-
-#THE FOLLOWING CODE IS BASED ON THE "LINEAR REGRESSION AND EXTENSIONS SW08" FROM ILIAS 
-
-# Too many column names, it's a bit confusing - let's remove rows 2-31 (CH interest rates, which are not averaged)
+View(ch)
 ch <- ch[,-2:-31]
-ch <- na.omit(ch)
-summary(ch)
-skewness(ch$ch.average.int.rates.linked.br.ch) # for the linear model we're going to take the "linked br" variables 
-                                               # since the correlation between "linked br" and house prices was biggest
-# output: -0.114246  <----- very little skewness, we don't need to correct with "mirror x square root"
+write.csv(ch, file = "ch.csv")
 
-skewness(ch$total.house.prices.average.ch)
-# output: -0.6129048  <----- this is is low/medium skewness, so we need to correct with "mirror natural log"
-ch$total.house.prices.average.ch <- sqrt(max(ch$total.house.prices.average.ch+1) - ch$total.house.prices.average.ch)
-skewness(ch$total.house.prices.average.ch)
-# output: 0.005890946  <------ much better :)
-
-lm.ch <- select(ch, c("Date", "ch.average.int.rates.linked.br.ch", "total.house.prices.average.ch"))
-
-names(lm.ch) <- c("Date", "interest.rates", "house.prices")
-lm.ch <- as.tibble(lm.ch)
-lm.ch$Date <- lubridate::year(lm.ch$Date)
-lm.ch$Date <- as.numeric(lm.ch$Date)
-lm.ch$interest.rates <- as.numeric(lm.ch$interest.rates)
-lm.ch$house.prices <- as.numeric(lm.ch$house.prices)
-View(lm.ch)
-
-# #regression
-regression <- lm(house.prices~., data=lm.ch)
-summary(regression)
-
-drop1(regression, test = "F") 
-
-regression.red <- lm(house.prices~interest.rates+Date, data=lm.ch)
-summary(regression.red)
-
-regression.red2 <- lm(house.prices~interest.rates, data=lm.ch)
-summary(regression.red2)
- 
-regression.red3 <- lm(house.prices~Date, data=lm.ch)
-summary(regression.red3)
-
-anova(regression.red3,regression.red2,regression.red,regression)
-
-
-(comparison <- compare_performance(regression.red3,regression.red2,regression.red,regression,rank=TRUE))
-plot(comparison)
-
-
-predicted <- predict(regression.red2, lm.ch)
-
-residuals <- lm.ch$house.prices - predicted  # substract the predicted values from house.prices
-residuals <- as.tibble(predicted) %>% mutate(real = lm.ch$house.prices, n=row_number()) %>% mutate(error= value-real, ratio=error/real)
-
-
-ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
-   geom_point(aes(x=n,y=value),color="red") +
-   geom_segment(aes(x=n,xend=n,y=real,yend=value), color="yellow", size=1, alpha=0.5)+
-   geom_line(aes(x=n,y=(value+real)/2),color="black")
-
-residuals <- residuals %>% arrange(real)  %>% mutate(n = row_number())    
-
-ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
-  geom_point(aes(x=n,y=value),color="green", alpha=0.25) +
-  geom_segment(aes(x=n,xend=n,y=real,yend=value, color=factor(sign(value-real),levels=c(-1,1))), size=1, alpha=0.5)+
-  geom_line(aes(x=n,y=(value+real)/2),color="black") +
-  theme(legend.position = "none")
-
-# #another more compact way of seeing the "errors" --> called residuals
-ggplot() + geom_point(data=residuals,aes(x=n,y=ratio)) + geom_abline(slope=0,color="red", alpha=0.5,size=3)
-
-
-
-# ################## PERFORMACES estimation
 # 
-# #let's see how to compute performances: the most used approach is k-fold CrossValudation (CV):
-# #  randomly divide the dataset into k subset and use k-1 of them for train the model and the remaining one
-# #    for testing the performance: repeat till every combination is covered and then average them
-# #ISSUE: with complex models and datasets not-small, computationally expensive
+# ####### PREDICTIVE ANALYTICS #####################################################
+# ####### trying to make a linear model ###########################################
 # 
-# #Anyway, we will take the "shotcut" to this: we separate 30% of the point as test set and use
-# #  the remaining 70% as train set, to create the model.
+# #THE FOLLOWING CODE IS BASED ON THE "LINEAR REGRESSION AND EXTENSIONS SW08" FROM ILIAS 
 # 
-# #let's use the model from the previous exercise: Attrition_DS
+# # Too many column names, it's a bit confusing - let's remove rows 2-31 (CH interest rates, which are not averaged)
 # 
-# library(readr)
+# ch <- na.omit(ch)
+# summary(ch)
+# skewness(ch$ch.average.int.rates.linked.br.ch) # for the linear model we're going to take the "linked br" variables 
+#                                                # since the correlation between "linked br" and house prices was biggest
+# # output: -0.114246  <----- very little skewness, we don't need to correct with "mirror x square root"
 # 
-# #separating test and training set
-# set.seed(56)
-# index_train <- sample(1:nrow(lm.ch),0.7*nrow(lm.ch))
+# skewness(ch$total.house.prices.average.ch)
+# # output: -0.6129048  <----- this is is low/medium skewness, so we need to correct with "mirror natural log"
+# ch$total.house.prices.average.ch <- sqrt(max(ch$total.house.prices.average.ch+1) - ch$total.house.prices.average.ch)
+# skewness(ch$total.house.prices.average.ch)
+# # output: 0.005890946  <------ much better :)
 # 
-# lm.ch.train <- lm.ch[index_train,]
-# dim(lm.ch.train)
-# lm.ch.test  <- lm.ch[-index_train,]
-# dim(lm.ch.test)
+# lm.ch <- select(ch, c("Date", "ch.average.int.rates.linked.br.ch", "total.house.prices.average.ch"))
 # 
-# #let's try to have an estimator for the "DailyRate"
-# #
-# regression.2 <- lm(house.prices~., data=lm.ch.train)
-# #equivalent will be: regression.2 <- lm(DailyRate~., data=lm.ch, subset = index_train)
-# summary(regression.2)
+# names(lm.ch) <- c("Date", "interest.rates", "house.prices")
+# lm.ch <- as.tibble(lm.ch)
+# lm.ch$Date <- lubridate::year(lm.ch$Date)
+# lm.ch$Date <- as.numeric(lm.ch$Date)
+# lm.ch$interest.rates <- as.numeric(lm.ch$interest.rates)
+# lm.ch$house.prices <- as.numeric(lm.ch$house.prices)
+# View(lm.ch)
 # 
-# drop1(regression.2, test="F")
+# # #regression
+# regression <- lm(house.prices~., data=lm.ch)
+# summary(regression)
 # 
-# drop1(update(regression.2, ~ . -Age ), test="F")
+# drop1(regression, test = "F") 
 # 
-# drop1(update(regression.2, ~ . -Age -EmployeeNumber), test="F")
+# regression.red <- lm(house.prices~interest.rates+Date, data=lm.ch)
+# summary(regression.red)
 # 
-# drop1(update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction), test="F")
+# regression.red2 <- lm(house.prices~interest.rates, data=lm.ch)
+# summary(regression.red2)
+#  
+# regression.red3 <- lm(house.prices~Date, data=lm.ch)
+# summary(regression.red3)
 # 
-# regression.2.1 <- lm(DailyRate~
-#                        Attrition+MaritalStatus+TotalWorkingYears+TrainingTimesLastYear+WorkLifeBalance+
-#                        Education+YearsAtCompany+EmployeeSource+
-#                        HourlyRate+JobRole+YearsInCurrentRole+YearsSinceLastPromotion+YearsWithCurrManager+
-#                        JobLevel+MonthlyRate+PercentSalaryHike+StockOptionLevel
-#                      , data=lm.ch.train)
+# anova(regression.red3,regression.red2,regression.red,regression)
 # 
-# summary(regression.2.1)
 # 
-# regression.2.2 <- update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction)
+# (comparison <- compare_performance(regression.red3,regression.red2,regression.red,regression,rank=TRUE))
+# plot(comparison)
 # 
-# summary(regression.2.2)
+# 
+# predicted <- predict(regression.red2, lm.ch)
+# 
+# residuals <- lm.ch$house.prices - predicted  # substract the predicted values from house.prices
+# residuals <- as.tibble(predicted) %>% mutate(real = lm.ch$house.prices, n=row_number()) %>% mutate(error= value-real, ratio=error/real)
+# 
+# 
+# ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
+#    geom_point(aes(x=n,y=value),color="red") +
+#    geom_segment(aes(x=n,xend=n,y=real,yend=value), color="yellow", size=1, alpha=0.5)+
+#    geom_line(aes(x=n,y=(value+real)/2),color="black")
+# 
+# residuals <- residuals %>% arrange(real)  %>% mutate(n = row_number())    
+# 
+# ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
+#   geom_point(aes(x=n,y=value),color="green", alpha=0.25) +
+#   geom_segment(aes(x=n,xend=n,y=real,yend=value, color=factor(sign(value-real),levels=c(-1,1))), size=1, alpha=0.5)+
+#   geom_line(aes(x=n,y=(value+real)/2),color="black") +
+#   theme(legend.position = "none")
+# 
+# # #another more compact way of seeing the "errors" --> called residuals
+# ggplot() + geom_point(data=residuals,aes(x=n,y=ratio)) + geom_abline(slope=0,color="red", alpha=0.5,size=3)
 # 
 # 
 # 
-# anova(regression.2.1, regression.2.2, regression.2)
-# 
-# (comparison.2 <- compare_performance(regression.2,regression.2.2,regression.2.1,rank=TRUE))
-# plot(comparison.2)
-# 
-# testcaseID=101
-# test <- lm.ch[testcaseID,]
-# test$DailyRate
-# predict(regression.2.2, test)
-# 
-# 
-# 
+# # ################## PERFORMACES estimation
+# # 
+# # #let's see how to compute performances: the most used approach is k-fold CrossValudation (CV):
+# # #  randomly divide the dataset into k subset and use k-1 of them for train the model and the remaining one
+# # #    for testing the performance: repeat till every combination is covered and then average them
+# # #ISSUE: with complex models and datasets not-small, computationally expensive
+# # 
+# # #Anyway, we will take the "shotcut" to this: we separate 30% of the point as test set and use
+# # #  the remaining 70% as train set, to create the model.
+# # 
+# # #let's use the model from the previous exercise: Attrition_DS
+# # 
+# # library(readr)
+# # 
+# # #separating test and training set
+# # set.seed(56)
+# # index_train <- sample(1:nrow(lm.ch),0.7*nrow(lm.ch))
+# # 
+# # lm.ch.train <- lm.ch[index_train,]
+# # dim(lm.ch.train)
+# # lm.ch.test  <- lm.ch[-index_train,]
+# # dim(lm.ch.test)
+# # 
+# # #let's try to have an estimator for the "DailyRate"
+# # #
+# # regression.2 <- lm(house.prices~., data=lm.ch.train)
+# # #equivalent will be: regression.2 <- lm(DailyRate~., data=lm.ch, subset = index_train)
+# # summary(regression.2)
+# # 
+# # drop1(regression.2, test="F")
+# # 
+# # drop1(update(regression.2, ~ . -Age ), test="F")
+# # 
+# # drop1(update(regression.2, ~ . -Age -EmployeeNumber), test="F")
+# # 
+# # drop1(update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction), test="F")
+# # 
+# # regression.2.1 <- lm(DailyRate~
+# #                        Attrition+MaritalStatus+TotalWorkingYears+TrainingTimesLastYear+WorkLifeBalance+
+# #                        Education+YearsAtCompany+EmployeeSource+
+# #                        HourlyRate+JobRole+YearsInCurrentRole+YearsSinceLastPromotion+YearsWithCurrManager+
+# #                        JobLevel+MonthlyRate+PercentSalaryHike+StockOptionLevel
+# #                      , data=lm.ch.train)
+# # 
+# # summary(regression.2.1)
+# # 
+# # regression.2.2 <- update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction)
+# # 
+# # summary(regression.2.2)
+# # 
+# # 
+# # 
+# # anova(regression.2.1, regression.2.2, regression.2)
+# # 
+# # (comparison.2 <- compare_performance(regression.2,regression.2.2,regression.2.1,rank=TRUE))
+# # plot(comparison.2)
+# # 
+# # testcaseID=101
+# # test <- lm.ch[testcaseID,]
+# # test$DailyRate
+# # predict(regression.2.2, test)
+# # 
+# # 
+# # 
