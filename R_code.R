@@ -34,6 +34,8 @@ ch.mortgage.rates <- read.csv(here("data", "ch-mortgage-rates.csv"))
 us.mortgage.rates <- read.csv(here("data", "us-mortgage-rates.csv"))
 us.house.prices <- read.csv(here("data", "us-house-prices.csv"))
 us.house.prices.2nd.df <- read.csv(here("data", "zillowPriceIndex.csv"))
+us.house.prices.1991 <- read.csv(here("data", "us-house-prices-1991.csv"))
+us.mortgage.rates.1991 <- read.csv(here("data", "us-mortgage-rates-1991.csv"))
 #View(ch.house.prices)
 #View(ch.mortgage.rates)
 #View(us.mortgage.rates)
@@ -43,6 +45,40 @@ us.house.prices.2nd.df <- read.csv(here("data", "zillowPriceIndex.csv"))
 
 
 ################## CH House Prices #######################################################################
+
+
+
+summary(ch.house.prices)
+View(ch.house.prices)
+
+ch.house.prices <- ch.house.prices[,-2]
+ch.house.prices <- ch.house.prices[,-6]
+# fill in missing values - same as next column, since it behaves very similar
+ch.house.prices[1,10] <- ch.house.prices[1,11]
+ch.house.prices[2,10] <- ch.house.prices[2,11]
+ch.house.prices[3,10] <- ch.house.prices[3,11]
+ch.house.prices[4,10] <- ch.house.prices[4,11]
+
+ch.house.prices[55,12] <- ch.house.prices[54,12]
+
+# add new column for averages
+# privately owned apartments
+private.apartements.average <- c(rowMeans(ch.house.prices[,2:5], na.rm = TRUE))
+ch.house.prices <- cbind(ch.house.prices, private.apartements = private.apartements.average)
+
+#view(real.estate.prices.CH[,2:6])
+
+# single family houses
+single.family.houses.average <- c(rowMeans(ch.house.prices[,6:9], na.rm = TRUE))
+ch.house.prices <- cbind(ch.house.prices, single.family.houses = single.family.houses.average)
+
+# apartment buildings (residential investment property)
+apartment.buildings.average <- c(rowMeans(ch.house.prices[,10:12], na.rm = TRUE))
+ch.house.prices <- cbind(ch.house.prices, apartment.buildings = apartment.buildings.average)
+
+# create total average 
+house.prices.average <- c(rowMeans(ch.house.prices[,12:14], na.rm = TRUE))
+ch.house.prices <- cbind(ch.house.prices, total.house.prices.average = house.prices.average)
 
 # for analysis purposes
 # reshape table so that column name is an variable
@@ -58,44 +94,8 @@ ch.house.prices.for.boxplot %>%
 # and "privately.owned.appartments.3" (the outliers are too high)
 
 
-# let's correct this and filter these out in the original dataset "ch.house.prices"
-summary(ch.house.prices$Privately.owned.apartments.3)
-#    Min.  1st Qu.  Median    Mean   3rd Qu.    Max. 
-#   142.3   169.5   178.1    173.4   181.2     185.1 
-
-
-summary(ch.house.prices$Privately.owned.apartments.4)
-#   Min.   1st Qu.  Median    Mean   3rd Qu.    Max. 
-#   140.9   174.8   189.1    186.0   197.9     234.1 
-# this means all values above 234.1 should be removed
-
-# should we remove the outliers? if so how???
-
-summary(ch.house.prices)
-View(ch.house.prices)
-
-
-# add new column for averages
-# privately owned apartments
-private.apartements.average <- c(rowMeans(ch.house.prices[,2:6], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, private.apartements = private.apartements.average)
-
-#view(real.estate.prices.CH[,2:6])
-
-# single family houses
-single.family.houses.average <- c(rowMeans(ch.house.prices[,7:11], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, single.family.houses = single.family.houses.average)
-
-# apartment buildings (residential investment property)
-apartment.buildings.average <- c(rowMeans(ch.house.prices[,12:14], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, apartment.buildings = apartment.buildings.average)
-
-# create total average 
-house.prices.average <- c(rowMeans(ch.house.prices[,14:16], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, total.house.prices.average = house.prices.average)
-
 # delete rows from different sources, only keep averages
-ch.house.prices <- ch.house.prices[,-2:-14]
+ch.house.prices <- ch.house.prices[,-2:-11]
 View(ch.house.prices)
 
 #convert to date
@@ -121,6 +121,9 @@ ggplot(ch.house.prices  %>% filter(ch.house.prices$Date > '2009/01/01'), aes(x =
 #convert to date
 date.ch.mortgage.rates <- as.character(ch.mortgage.rates$Date)
 ch.mortgage.rates$Date <- as.Date(date.ch.mortgage.rates, formats = "%Y/%m/%d")
+
+summary(ch.mortgage.rates)
+View(ch.mortgage.rates)
 
 # plot Average -> variable red, fixed blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
@@ -348,12 +351,12 @@ View(us)
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
 us.correlation <- cor(us$us.fixed.rate.average, us$Real.Estate.Prices, use = "complete.obs", method = "pearson")
-view(us.correlation)
+us.correlation
 #   CORRELATION IS -0.2065972   	
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 
-model.us <- lm(us$us.fixed.rate.average~ us$Real.Estate.Prices, data=ch)
+model.us <- lm(us$us.fixed.rate.average~ us$Real.Estate.Prices, data=us)
 summary(model.us)
 # p-value: 0.1339 <- we cannot reject H0 - the model has no relevance
 
@@ -364,6 +367,91 @@ summary(model.us)
 
 
 
+####### US data 1991 ####################################
+
+#us <- na.omit(us)
+summary(us.house.prices.1991)
+summary(us.mortgage.rates.1991)
+
+us.1991 <- full_join(us.house.prices.1991, us.mortgage.rates.1991, by = "Date")
+View(us.1991)
+
+# There is no skewness to be corrected
+
+# CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
+# calculate correlation ("complete.obs" to make it ignore the NA values)
+us.correlation.1991.30y <- cor(us.1991$house.prices.1991, us.1991$mortgage.30y, use = "complete.obs", method = "pearson")
+us.correlation.1991.30y
+#   CORRELATION IS -0.8325875  	
+### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
+
+
+model.us.1991.30y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.30y, data=us.1991 )
+summary(model.us.1991.30y)
+# Coefficients:
+#                        Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)              533994      16202   32.96   <2e-16 ***
+#  us.1991$mortgage.30y    -44938       2696  -16.67   <2e-16 ***
+
+# Multiple R-squared:  0.6932,	Adjusted R-squared:  0.6907 
+# F-statistic: 277.9 on 1 and 123 DF,  p-value: < 2.2e-16
+# p-value < 0.05 model is relevant
+
+
+us.correlation.1991.15y <- cor(us.1991$house.prices.1991, us.1991$mortgage.15y, use = "complete.obs", method = "pearson")
+us.correlation.1991.15y
+#   CORRELATION IS -0.8279419 	
+### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
+
+model.us.1991.15y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.15y, data=us.1991 )
+summary(model.us.1991.15y)
+
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)             533994      16202   32.96   <2e-16 ***
+#  us.1991$mortgage.30y   -44938       2696  -16.67   <2e-16 ***
+
+# Multiple R-squared:  0.6932,	Adjusted R-squared:  0.6907 
+# F-statistic: 277.9 on 1 and 123 DF,  p-value: < 2.2e-16
+# p-value < 0.05 model is relevant
+
+#convert to date
+date.us.1991 <- as.character(us.1991$Date)
+us.1991$Date <- as.Date(date.us.1991, formats = "%Y/%m/%d")
+
+# two plots combined - interest rates and house prices
+us.1991 %>%
+ggplot(aes(x = Date))+
+  geom_point(aes(y = mortgage.30y*50000), na.rm = TRUE, size = 2, color = "green")+
+  geom_point(aes(y = mortgage.15y*50000), na.rm = TRUE, size = 2, color = "red")+
+  geom_point(aes(y = house.prices.1991), na.rm = TRUE, color = "black", size = 2)+
+  scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  scale_y_continuous(sec.axis = sec_axis(trans=~./50000, name= "interest rates"))+
+  labs(x = "time period", y = "house prices")+
+  labs(caption = "US mortgage 30y: green, 
+       US mortgage 15y: red, 
+       house prices: black")+
+  ggtitle("interest rates and house prices since 1991 US")
+
+# two plots combined - interest rates and house prices - interest rates maped against house prices
+ggplot(us.1991, aes(x = house.prices.1991))+
+  geom_point(aes(y = mortgage.30y), na.rm = TRUE, size = 2, color = "green")+
+  geom_point(aes(y = mortgage.15y), na.rm = TRUE, size = 2, color = "red")+
+  labs(caption = "US mortgage 30y: green, 
+       US mortgage 15y: red")+
+  labs(x = "house prices", y = "interest rates")+
+  ggtitle("US CORRELATION since 1991 - interest rates and house prices")
+
+  # two plots combined - interest rates and house prices - with a LINEAR MODEL
+ggplot(us.1991, aes(x = house.prices.1991))+
+  geom_point(aes(y = mortgage.30y), na.rm = TRUE, size = 2, color = "green")+
+  geom_smooth(aes(y = mortgage.30y), na.rm = TRUE, size = 1, color = "green", method = lm)+
+  geom_point(aes(y = mortgage.15y), na.rm = TRUE, size = 2, color = "red")+
+  geom_smooth(aes(y = mortgage.15y), na.rm = TRUE, size = 1, color = "red", method = lm)+
+  labs(caption = "US mortgage 30y: green, 
+       US mortgage 15y: red")+
+  labs(x = "house prices", y = "interest rates")+
+  ggtitle("US CORRELATION since 1991 - interest rates and house prices")
 
 ################## Join the CH data ###########################################
 
@@ -372,25 +460,6 @@ ch <- full_join(ch.mortgage.rates, ch.house.prices, by = "Date")
 View(ch)
 
 ch$ch.average.int.rates.linked.br <- as.numeric(ch$ch.average.int.rates.linked.br)
-
-
-# the skewness "ch.average.fixed.int.rates" AND "ch.average.int.rates.nl.br"
-# is really hight -> let's fix this before calculating the correlation 
-
-skewness(ch$ch.average.fixed.int.rates)  # output: 0.8640249
-skewness(ch$ch.average.int.rates.nl.br) # output: -1.346626
-
-skewness.corrected.ch <- ch
-
-skewness.corrected.ch$ch.average.int.rates.nl.br <- 1/(max(ch$ch.average.int.rates.nl.br)+1 - ch$ch.average.int.rates.nl.br)
-skewness(skewness.corrected.ch$ch.average.int.rates.nl.br)
-# output: -0.6891755  <------ much better :)
-
-skewness.corrected.ch$ch.average.fixed.int.rates <- log10(ch$ch.average.fixed.int.rates)
-skewness(skewness.corrected.ch$ch.average.fixed.int.rates)
-# output: 0.4976215  <------ also much better :)
-
-
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
@@ -403,15 +472,6 @@ cor(ch$ch.average.int.rates.linked.br, ch$total.house.prices.average, use = "com
 cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
 #  CORRELATION IS -0.7066481
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
-
-
-#  WITH CORRECTED SKEWNESS
-cor(skewness.corrected.ch$ch.average.fixed.int.rates, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
-#  CORRELATION IS -0.855395
-
-#-------> does not work :(
-#cor(skewness.corrected.ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
-#  CORRELATION IS 0.7743844
 
 
 model.fixed.int.rates <- lm(ch$ch.average.fixed.int.rate~ ch$total.house.prices.average, data=ch)
@@ -675,12 +735,13 @@ View(ch)
 
 final.data <- full_join(ch, us, by = "Date")
 View(final.data)
+summary(final.data)
 # colnames(final.data)
 
 # Too many column names, it's a bit confusing - let's remove rows 2-31 (CH interest rates, which are not averaged)
 final.data <- final.data[,-2:-31]
 # let's remove rows 17 (US Margin.for.5.1.Year.Adj.us) this is not very important for our research
-final.data <- final.data[,-17]
+final.data <- final.data[,-18]
 View(final.data)
 colnames(final.data)
 
