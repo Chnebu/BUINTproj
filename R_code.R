@@ -44,9 +44,7 @@ us.mortgage.rates.1991 <- read.csv(here("data", "us-mortgage-rates-1991.csv"))
 
 
 
-################## CH House Prices #######################################################################
-
-
+############# DATA CLEANING - CH House Prices #######################################################################
 
 summary(ch.house.prices)
 View(ch.house.prices)
@@ -64,17 +62,15 @@ ch.house.prices[55,12] <- ch.house.prices[54,12]
 # add new column for averages
 # privately owned apartments
 private.apartements.average <- c(rowMeans(ch.house.prices[,2:5], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, private.apartements = private.apartements.average)
-
-#view(real.estate.prices.CH[,2:6])
+ch.house.prices <- cbind(ch.house.prices, private.apartements.average = private.apartements.average)
 
 # single family houses
 single.family.houses.average <- c(rowMeans(ch.house.prices[,6:9], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, single.family.houses = single.family.houses.average)
+ch.house.prices <- cbind(ch.house.prices, single.family.houses.average = single.family.houses.average)
 
 # apartment buildings (residential investment property)
 apartment.buildings.average <- c(rowMeans(ch.house.prices[,10:12], na.rm = TRUE))
-ch.house.prices <- cbind(ch.house.prices, apartment.buildings = apartment.buildings.average)
+ch.house.prices <- cbind(ch.house.prices, apartment.buildings.average = apartment.buildings.average)
 
 # create total average 
 house.prices.average <- c(rowMeans(ch.house.prices[,12:14], na.rm = TRUE))
@@ -90,12 +86,22 @@ ch.house.prices.for.boxplot %>%
   geom_boxplot()+
   theme(axis.text.x = element_text(angle = 60,vjust = 0.5,hjust = 1))+
   ggtitle("Boxplot CH House Prices - to find outliers")
-# we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
-# and "privately.owned.appartments.3" (the outliers are too high)
+
+# we can see that there are outliers in "privately.owned.apartments.3" (the outliers are too low)
+# and "privately.owned.apartments.3" (the outliers are too high)
+
+# the data  ....apartments.1, ...apartments.2, ...apartments.3 and ...apartments.4 are different research sources
+# but from the data we can see that in all these cases the data continuously rises so these outliers
+# are just the first few values 
+
+# We can also see that once we've averaged the different research sources there are no more outliers
+# (the last 4 boxplots)
+
+
 
 
 # delete rows from different sources, only keep averages
-ch.house.prices <- ch.house.prices[,-2:-11]
+ch.house.prices <- ch.house.prices[,-2:-12]
 View(ch.house.prices)
 
 #convert to date
@@ -103,10 +109,10 @@ date.ch.house.prices <- as.character(ch.house.prices$Date)
 ch.house.prices$Date <- as.Date(date.ch.house.prices, formats = "%Y/%m/%d")
 
 # plot
-ggplot(ch.house.prices  %>% filter(ch.house.prices$Date > '2009/01/01'), aes(x = Date))+
-  geom_point(aes(y = private.apartements), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = single.family.houses), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = apartment.buildings), na.rm = TRUE, size = 2, color = "green")+
+ggplot(ch.house.prices, aes(x = Date))+
+  geom_point(aes(y = private.apartements.average), na.rm = TRUE, size = 2, color = "red")+
+  geom_point(aes(y = single.family.houses.average), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = apartment.buildings.average), na.rm = TRUE, size = 2, color = "green")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   labs(caption = "Green: apartment.buildings, Red: private.apartments, Blue: single.family.houses")+
@@ -116,7 +122,8 @@ ggplot(ch.house.prices  %>% filter(ch.house.prices$Date > '2009/01/01'), aes(x =
 
 
           
-#################### CH Mortgage Rates ###################################################
+############### DATA CLEANING - CH Mortgage Rates ###################################################
+
 
 #convert to date
 date.ch.mortgage.rates <- as.character(ch.mortgage.rates$Date)
@@ -167,10 +174,11 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
 #                   [4] Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k. 
 #                   [6] Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.500k...1.Mio. 
 #                   [8] Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio. 
-# -> these are the 4 upper green dots -> VARIABLE INTEREST RATES - NL.BR
+# -> these are the 3 upper green dots -> VARIABLE INTEREST RATES - NL.BR ----- upper green dots
 
-# Orange belongs to the same category but is slightly off -> should it be included ??????????????
+# ORANGE belongs to the same category but is slightly off -> should it be included ??????????????
 # ->               [10] Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.
+ # we are going to ignore the them because there are 47 NA values, it is not accurate!
 
 
 
@@ -195,7 +203,9 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
 # the black dots are a little bit off, I don't know if they should be included ????????
 # ->                [30] Average.of.M..Mortgages.with.fixed.interest.rates..CHF.5.Mio...15.Mio
 
-### DECISION -> I included EVERYTHING, because they belong to the same category -> Jan you can change it if you want :)
+### DECISION -> Because they belong to the same category, 
+# I included EVERYTHING but the orange dots (NL BR 5-15Mio - bc of NAs), 
+
 
 
 # Add averages as a new column to the table "ch.mortgage.rates"
@@ -203,8 +213,8 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
 average.int.rates.nl.br <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.",  
                                                            "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k.", 
                                                            "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.500k...1.Mio.",
-                                                           "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.",
-                                                           "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.")),
+                                                           "Average.of..M..Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.")),
+  # not included because of too many NA values            "Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio."
                                                             na.rm = TRUE)
 ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.int.rates.nl.br = average.int.rates.nl.br)
 
@@ -228,8 +238,6 @@ ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.fixed.int.rates = avera
 View(ch.mortgage.rates)
 
 
-
-
 # plot Sum -> NL BR variable = red, Linked BR variable = orange, fixed = blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "red")+
@@ -237,6 +245,8 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.500k...1.Mio.), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.1.Mio...5.Mio.), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "red")+
+  # "Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.5.Mio...15.Mio." has a lot of NA value, for visualisation 
+  # we are displaying it on the graph, but we're going to ignore it afterwards
   
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...Linked.BR..CHF.100k...500k.), na.rm = TRUE, size = 2, color = "orange")+
@@ -263,7 +273,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
 
           
 
-#################### US Mortgage Rates ###################################################
+########### DATA CLEANING - US Mortgage Rates ###################################################
 
 
 # rename the colmns
@@ -271,22 +281,9 @@ names(us.mortgage.rates) <- c("Date", "fixed.Rate.Avg.15.Year","fixed.Rate.Avg.3
                               "Margin.for.5.1.Year.Adj","Origination.Fees.and.Discount.Points.for.15.Y",
                               "Origination.Fees.and.Discount.Points.for.30.Y","Origination.Fees.and.Discount.Points.for.5.Y")
 
-#for better manipulation and readibilitty, let's transform the data.frame into a "tibble" object
+#for better manipulation and readability, let's transform the data.frame into a "tibble" object
 us.mortgage.rates <- as_tibble(us.mortgage.rates)
 View(us.mortgage.rates)
-
-#     Jan's Code :)
-
-#monthly <- ts(us.mortgage.rates, start = c(2009, 1), frequency = 12)
-#quarterly <- aggregate(monthly, mean)
-#View(quarterly)
-
-#plot1 <- ggplot(data = us.mortgage.rates, mapping = aes(x = "30-Year Fixed Rate Avg", y="Date"))
-
-# plot2 <- ggplot(data = us.mortgage.rates, mapping = aes(x = "Date", y = "30-Year Fixed Rate Avg"))+
-#  geom_point(color = "#00AFBB", size = 5) +
-#  geom_line(color = "#00AFBB", size = 2)
-# print(plot2)
 
 #convert to date
 date.us.mortgage.rates <- as.character(us.mortgage.rates$Date)
@@ -317,13 +314,12 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
   labs(caption = "Green: 30y, Red: 15y, Blue: 5y, Mortgages & Fees, Discount points")+
   ggtitle("US Mortgage Rates")
   
-
-  # what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
-  # risk for them during times of rising rates, bc. customers have to ajust in 5y.)
+# what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
+# risk for them during times of rising rates, bc. customers have to ajust in 5y.)
 
 
   
-################### US House Prices ##############################################
+########### DATA CLEANING - US House Prices ##############################################
 
 #convert to date
 date.us.house.prices <- as.character(us.house.prices$Date)
@@ -338,17 +334,11 @@ ggplot((us.house.prices), aes(x = Date))+
 
 
 
-
-
-
 ################## Join the US data ###########################################
-#us <- na.omit(us)
-summary(us)
 
+summary(us)
 us <- full_join(us.mortgage.rates, us.house.prices, by = "Date")
 View(us)
-
-# There is no skewness to be corrected
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
@@ -357,34 +347,197 @@ us.correlation
 #   CORRELATION IS -0.2065972   	
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
-
 model.us <- lm(us$us.fixed.rate.average~ us$Real.Estate.Prices, data=us)
 summary(model.us)
 # p-value: 0.1339 <- we cannot reject H0 - the model has no relevance
 
+# SOMETHING IS WRONG, correlation is  very little, can this be ? :(
 
-#### SOMETHING IS WRONG, correlation is  very little, can this be ? :(
-
-### We are gonna add another data set just to make sure we have accurate and treatable data
-
+# We are gonna add another data set just to make sure we have accurate and treatable data
 
 
-####### US data 1991 ####################################
 
-#us <- na.omit(us)
-summary(us.house.prices.1991)
-summary(us.mortgage.rates.1991)
+
+############ reorder 2nd data set - US house prices #############################
+
+# create empty table (this is where the numbers are put in the loop)
+us.house.prices.second.try = data.frame(Date=character(0),all.homes=numeric(0), single.family=numeric(0), 
+                                        condos=numeric(0), one.room=numeric(0), five.rooms=numeric(0))
+print(us.house.prices.second.try)
+
+## CONVERT TO Quarters
+# matrix starts at 1
+i <- 1
+# 2 because 1 is the date
+j <- 1 
+# loop through numbers and add them to new table
+for(i in 1: nrow(us.house.prices.2nd.df))
+{
+  for (j in 1: ncol(us.house.prices.2nd.df))
+  {
+    if(i %% 3 == 0) # one quarter <- 3 months/rows
+    {
+      if(j == 1) # if column is 1 <- the loop is on a Date
+      {        # then add date of the first month of the quarter (2 rows above the current row)
+        us.house.prices.second.try[nrow(us.house.prices.second.try) + 1,] <- c(Date=us.house.prices.2nd.df[i-2,1], 
+                                                                               NA, NA, NA, NA, NA)
+      }                 
+      else
+      {       # if the loop is not on a date, then calculate the mean of this row and the last 2 and insert the mean 
+        # in the new table (the new table is 3 times smaller than the original one)
+        us.house.prices.second.try[i/3,j] = mean(us.house.prices.2nd.df[i-2,j], 
+                                                 us.house.prices.2nd.df[i-1,j], 
+                                                 us.house.prices.2nd.df[i,j]) 
+      }             
+    }
+  }
+}
+
+# for analysis purposes
+# reshape table so that column name is an variable
+us.house.prices.second.try.for.boxplot <-melt(us.house.prices.second.try, id = c("Date"))
+View(us.house.prices.second.try.for.boxplot)
+us.house.prices.second.try.for.boxplot$value <- as.numeric(us.house.prices.second.try.for.boxplot$value)
+
+us.house.prices.second.try.for.boxplot %>%
+  ggplot(aes(x = variable, y = value), na.rm = TRUE)+
+  geom_boxplot()+
+  ggtitle("Boxplot US House Prices, 2nd data set - to find outliers")
+# we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
+# and "privately.owned.appartments.3" (the outliers are too high)
+
+us.house.prices.second.try.for.boxplot %>%
+  ggplot(aes(x = Date, y = value))+
+  geom_point(aes(na.rm = TRUE, color = variable))+
+  # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  ggtitle("US House Prices")
+
+
+
+###### Join with other US data set ##################################################
+
+#convert to date
+date.us.house.prices.second.try <- as.character(us.house.prices.second.try$Date)
+us.house.prices.second.try$Date <- as.Date(date.us.house.prices.second.try, formats = "%Y/%m/%d")
+
+us <- full_join(us.house.prices.second.try, us, by = "Date")
+View(us)
+
+
+# transform data to numeric data type
+us$single.family <- as.numeric(us$single.family)
+us$all.homes <- as.numeric(us$all.homes)
+us$condos <- as.numeric(us$condos)
+us$one.room <- as.numeric(us$one.room)
+us$five.rooms <- as.numeric(us$five.rooms)
+
+
+# compare new data set to old one in order to see if it is accurate
+us %>%
+  ggplot(aes(x = Date))+
+  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  labs(caption = "2nd Data Set: 
+  single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
+  1st Data Set: Real.Estate.Prices: red
+  We can see: the 1st data set is similar to the data from the 2nd data set for five.rooms")+
+  labs(x = "house prices", y = "Time Period")+
+  ggtitle("US House Prices with new Data")
+
+
+# filter us data so it only shows values from 2009 until now
+us <-  filter(us, us$Date > '2009/01/01') 
+
+us %>%
+  ggplot(aes(x = Date))+
+  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  labs(caption = "2nd Data Set: 
+  single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
+  1st Data Set: Real.Estate.Prices: red
+  We can see: the 1st data set is similar to the data from the 2nd data set for five.rooms")+
+  labs(x = "house prices", y = "Time Period")+
+  ggtitle("US House Prices with new Data 2009")
+
+# two plots combined - interest rates and house prices
+ggplot(us, aes(x = Date))+
+  geom_point(aes(y = us.fixed.rate.average*60000), na.rm = TRUE, size = 2, color = "black")+
+  geom_line(aes(y = us.fixed.rate.average*60000), na.rm = TRUE, size = 0.5, color = "black")+
+  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  scale_y_continuous(sec.axis = sec_axis(trans=~./60000, name= "interest rates"))+
+  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
+  fixed interest rate average: black")+
+  labs(x = "time period", y = "house prices")+
+  ggtitle("Comparing interest rates and house prices US")
+
+# two plots combined - interest rates and house prices
+ggplot(us, aes(x = us.fixed.rate.average))+
+  geom_point(aes(y = single.family), na.rm = TRUE, size = 2, color = "light green")+
+  geom_point(aes(y = all.homes), na.rm = TRUE, size = 2, color = "orange")+
+  geom_point(aes(y = condos), na.rm = TRUE, size = 2, color = "dark green")+
+  geom_point(aes(y = one.room), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, size = 2, color = "purple")+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  labs(x = "house prices", y = "interest rates")+
+  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
+  We can see that there is probably not much correlation since the dots are almost scattered vertically")+
+  ggtitle("US CORRELATION - Interest rates & house prices")
+
+# two plots combined - interest rates and house prices  WITH A LINEAR MODEL
+ggplot(us, aes(x = us.fixed.rate.average))+
+  geom_point(aes(y = single.family), na.rm = TRUE, size = 2, color = "light green")+
+  geom_smooth(aes(y = single.family), na.rm = TRUE, size = 1, color = "light green", method = lm)+
+  geom_point(aes(y = all.homes), na.rm = TRUE, size = 2, color = "orange")+
+  geom_smooth(aes(y = all.homes), na.rm = TRUE, size = 1, color = "orange", method = lm)+
+  geom_point(aes(y = condos), na.rm = TRUE, size = 2, color = "dark green")+
+  geom_smooth(aes(y = condos), na.rm = TRUE, size = 1, color = "dark green", method = lm)+
+  geom_point(aes(y = one.room), na.rm = TRUE, size = 2, color = "blue")+
+  geom_smooth(aes(y = one.room), na.rm = TRUE, size = 1, color = "blue", method = lm)+
+  geom_point(aes(y = five.rooms), na.rm = TRUE, size = 2, color = "purple")+
+  geom_smooth(aes(y = five.rooms), na.rm = TRUE, size = 1, color = "purple", method = lm)+
+  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 2, color = "red")+
+  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 1, color = "red", method = lm)+
+  labs(x = "house prices", y = "interest rates")+
+  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
+  We can see that there is almost no correlation, the line is almost vertical and the confidence band is really big")+
+  ggtitle("US CORRELATION - Linear model - Interest rates & house prices")
+
+
+# There is almost no correlation, the line is very flat and the confidence band is VERY big :(
+
+# Could it be that the correlation used to be bigger before 2009 ?
+
+
+
+
+####### US data 1991 ####################################################
 
 us.1991 <- full_join(us.house.prices.1991, us.mortgage.rates.1991, by = "Date")
 View(us.1991)
 
-# There is no skewness to be corrected
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
 us.correlation.1991.30y <- cor(us.1991$house.prices.1991, us.1991$mortgage.30y, use = "complete.obs", method = "pearson")
 us.correlation.1991.30y
-#   CORRELATION IS -0.8325875  	
+#   CORRELATION IS -0.8325875  	  -> VERY STRONG CORRELATION
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 
@@ -397,12 +550,13 @@ summary(model.us.1991.30y)
 
 # Multiple R-squared:  0.6932,	Adjusted R-squared:  0.6907 
 # F-statistic: 277.9 on 1 and 123 DF,  p-value: < 2.2e-16
-# p-value < 0.05 model is relevant
+
+# p-value < 0.05 model is relevant! There is a lot of correlation
 
 
 us.correlation.1991.15y <- cor(us.1991$house.prices.1991, us.1991$mortgage.15y, use = "complete.obs", method = "pearson")
 us.correlation.1991.15y
-#   CORRELATION IS -0.8279419 	
+#   CORRELATION IS -0.8279419 	-> VERY STRONG CORRELATION
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 model.us.1991.15y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.15y, data=us.1991 )
@@ -415,7 +569,8 @@ summary(model.us.1991.15y)
 
 # Multiple R-squared:  0.6932,	Adjusted R-squared:  0.6907 
 # F-statistic: 277.9 on 1 and 123 DF,  p-value: < 2.2e-16
-# p-value < 0.05 model is relevant
+
+# p-value < 0.05 model is relevant! There is a lot of correlation
 
 #convert to date
 date.us.1991 <- as.character(us.1991$Date)
@@ -454,6 +609,10 @@ ggplot(us.1991, aes(x = house.prices.1991))+
        US mortgage 15y: red")+
   labs(x = "house prices", y = "interest rates")+
   ggtitle("US CORRELATION since 1991 - interest rates and house prices")
+
+
+
+
 
 ################## Join the CH data ###########################################
 
@@ -548,181 +707,9 @@ ggplot(ch, aes(x = total.house.prices.average))+
   ggtitle("CH CORRELATION - Linear model - Interest rates & house prices")
 
 
-############ reorder 2nd data set - US house prices #############################
-
-# create empty table (this is where the numbers are put in the loop)
-us.house.prices.second.try = data.frame(Date=character(0),all.homes=numeric(0), single.family=numeric(0), 
-                 condos=numeric(0), one.room=numeric(0), five.rooms=numeric(0))
-print(us.house.prices.second.try)
-
-## CONVERT TO Quarters
-# matrix starts at 1
-i <- 1
-# 2 because 1 is the date
-j <- 1 
-# loop through numbers and add them to new table
-for(i in 1: nrow(us.house.prices.2nd.df))
-{
-  for (j in 1: ncol(us.house.prices.2nd.df))
-  {
-    if(i %% 3 == 0) # one quarter <- 3 months/rows
-    {
-      if(j == 1) # if column is 1 <- the loop is on a Date
-        {        # then add date of the first month of the quarter (2 rows above the current row)
-          us.house.prices.second.try[nrow(us.house.prices.second.try) + 1,] <- c(Date=us.house.prices.2nd.df[i-2,1], 
-                                                                                 NA, NA, NA, NA, NA)
-        }                 
-      else
-        {       # if the loop is not on a date, then calculate the mean of this row and the last 2 and insert the mean 
-                # in the new table (the new table is 3 times smaller than the original one)
-          us.house.prices.second.try[i/3,j] = mean(us.house.prices.2nd.df[i-2,j], 
-                                            us.house.prices.2nd.df[i-1,j], 
-                                            us.house.prices.2nd.df[i,j]) 
-        }             
-    }
-  }
-}
-#View(us.house.prices.second.try)
-
-# for analysis purposes
-# reshape table so that column name is an variable
-us.house.prices.second.try.for.boxplot <-melt(us.house.prices.second.try, id = c("Date"))
-View(us.house.prices.second.try.for.boxplot)
-us.house.prices.second.try.for.boxplot$value <- as.numeric(us.house.prices.second.try.for.boxplot$value)
-
-us.house.prices.second.try.for.boxplot %>%
-  ggplot(aes(x = variable, y = value), na.rm = TRUE)+
-  geom_boxplot()+
-  ggtitle("Boxplot US House Prices, 2nd data set - to find outliers")
-# we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
-# and "privately.owned.appartments.3" (the outliers are too high)
-
-us.house.prices.second.try.for.boxplot %>%
-  ggplot(aes(x = Date, y = value))+
-  geom_point(aes(na.rm = TRUE, color = variable))+
-  # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
-  theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
-  ggtitle("US House Prices")
 
 
-
-###### Join with other us data set ##################################################
-
-#convert to date
-date.us.house.prices.second.try <- as.character(us.house.prices.second.try$Date)
-us.house.prices.second.try$Date <- as.Date(date.us.house.prices.second.try, formats = "%Y/%m/%d")
-
-us <- full_join(us.house.prices.second.try, us, by = "Date")
-View(us)
-
-
-# transform data to numeric data type
-us$single.family <- as.numeric(us$single.family)
-us$all.homes <- as.numeric(us$all.homes)
-us$condos <- as.numeric(us$condos)
-us$one.room <- as.numeric(us$one.room)
-us$five.rooms <- as.numeric(us$five.rooms)
-
-
-# Jans code
-#delete old Data from pre 2009.
-# usfiltered2009 <- us[!(us$Date < '2009/01/01'),]
-# chfiltered2009 <- ch[!(ch$Date < '2009/01/01'),]
-#View(chfiltered2009)
-
-# compare new data set to old one in order to see if it is accurate
-us %>%
-  ggplot(aes(x = Date))+
-  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  labs(caption = "2nd Data Set: 
-  single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
-  1st Data Set: Real.Estate.Prices: red
-  We can see: the 1st data set is similar to the data from the 2nd data set for five.rooms")+
-  labs(x = "house prices", y = "Time Period")+
-  ggtitle("US House Prices with new Data")
-
-# seems pretty acurrate -> very similar to five room data from new dataset
-
-# safe unfiltered data, just in case we need it
-us.2000 <- us
-# filter us data so it only shows values from 2009 till now
-us <-  filter(us, us$Date > '2009/01/01') 
-
-us %>%
-  ggplot(aes(x = Date))+
-  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  labs(caption = "2nd Data Set: 
-  single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
-  1st Data Set: Real.Estate.Prices: red
-  We can see: the 1st data set is similar to the data from the 2nd data set for five.rooms")+
-  labs(x = "house prices", y = "Time Period")+
-  ggtitle("US House Prices with new Data 2009")
-  
-# two plots combined - interest rates and house prices
-ggplot(us, aes(x = Date))+
-  geom_point(aes(y = us.fixed.rate.average*60000), na.rm = TRUE, size = 2, color = "black")+
-  geom_line(aes(y = us.fixed.rate.average*60000), na.rm = TRUE, size = 0.5, color = "black")+
-  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  scale_x_date(date_breaks = "years" , date_labels = "%Y")+
-  scale_y_continuous(sec.axis = sec_axis(trans=~./60000, name= "interest rates"))+
-  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
-  fixed interest rate average: black")+
-  labs(x = "time period", y = "house prices")+
-  ggtitle("Comparing interest rates and house prices US")
-
-# two plots combined - interest rates and house prices
-ggplot(us, aes(x = us.fixed.rate.average))+
-  geom_point(aes(y = single.family), na.rm = TRUE, size = 2, color = "light green")+
-  geom_point(aes(y = all.homes), na.rm = TRUE, size = 2, color = "orange")+
-  geom_point(aes(y = condos), na.rm = TRUE, size = 2, color = "dark green")+
-  geom_point(aes(y = one.room), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, size = 2, color = "purple")+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
-  labs(x = "house prices", y = "interest rates")+
-  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
-  We can see that there is probably not much correlation since the dots are almost scattered vertically")+
-  ggtitle("US CORRELATION - Interest rates & house prices")
-
-# two plots combined - interest rates and house prices  WITH A LINEAR MODEL
-ggplot(us, aes(x = us.fixed.rate.average))+
-  geom_point(aes(y = single.family), na.rm = TRUE, size = 2, color = "light green")+
-  geom_smooth(aes(y = single.family), na.rm = TRUE, size = 1, color = "light green", method = lm)+
-  geom_point(aes(y = all.homes), na.rm = TRUE, size = 2, color = "orange")+
-  geom_smooth(aes(y = all.homes), na.rm = TRUE, size = 1, color = "orange", method = lm)+
-  geom_point(aes(y = condos), na.rm = TRUE, size = 2, color = "dark green")+
-  geom_smooth(aes(y = condos), na.rm = TRUE, size = 1, color = "dark green", method = lm)+
-  geom_point(aes(y = one.room), na.rm = TRUE, size = 2, color = "blue")+
-  geom_smooth(aes(y = one.room), na.rm = TRUE, size = 1, color = "blue", method = lm)+
-  geom_point(aes(y = five.rooms), na.rm = TRUE, size = 2, color = "purple")+
-  geom_smooth(aes(y = five.rooms), na.rm = TRUE, size = 1, color = "purple", method = lm)+
-  geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 2, color = "red")+
-  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 1, color = "red", method = lm)+
-  labs(x = "house prices", y = "interest rates")+
-  labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
-  We can see that there is almost no correlation, the line is almost vertical and the confidence band is really big")+
-  ggtitle("US CORRELATION - Linear model - Interest rates & house prices")
-# There is almost no correlation, and the confidence band is VERY big :(
-
-  
-  
-  ################### Merge US and CH data ######################
+################### Merge US and CH data #######################################╤
 
 # before merging
 # add suffix us to all the column names US
@@ -755,9 +742,9 @@ colnames(final.data)
 # "ch.average.fixed.int.rates.ch"
 
 # CH HOUSE PRICES
-# "private.apartements.ch"                           
-# "single.family.houses.ch"                         
-# "apartment.buildings.ch"                           
+# "private.apartements.average.ch"                           
+# "single.family.houses.average.ch"                         
+# "apartment.buildings.average.ch"                           
 # "total.house.prices.average.ch" 
 
 # US HOUSE PRICES
@@ -788,9 +775,9 @@ ggplot(final.data, aes(x = Date))+
   geom_point(aes(y = one.room.us), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = five.rooms.us), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = Real.Estate.Prices.us), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = private.apartements.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = single.family.houses.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = apartment.buildings.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = private.apartements.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = single.family.houses.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = apartment.buildings.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
   labs(x = "Date", y = "house price US")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
@@ -817,34 +804,11 @@ ggplot(final.data, aes(x = Date))+
   labs(caption = "CH: blue, US: orange")
 
 
-#totalPlot: All Data from both df - Baustjielle Jan
-# need:
-  # house prices US; 2 lines.
-  # house prices CH
-  
-# allFiltered <- try(chfiltered2009[, "total.house.prices.average"])
-# allFiltered <- chfiltered2009$total.house.prices.average
-# colnames(allFiltered)[colnames(allFiltered) == "total.house.prices.average"] ="ch.average.house.price"
-# View(allFiltered)
-# 
-# ch.average.house.price
-# allFiltered$us.average.interest.rate <- rowMeans(usfiltered2009[c(2, 3)], na.rm=TRUE)
-# View(usfiltered2009)
-# colMeans(df, na.rm=TRUE)
-# 
-# allFiltered %>%
-#   ggplot(aes(x = Date))+
-#   #  geom_point(aes(y = single.family), na.rm = TRUE, colour = "light green")+
-#   geom_point(aes(y = all.homes), na.rm = TRUE, colour = "orange")+
-#   #  geom_point(aes(y = condos), na.rm = TRUE, colour = "dark green")+
-#   #  geom_point(aes(y = one.room), na.rm = TRUE, colour = "blue")+
-#   #  geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
-#   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
-# #  geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")
+
 
 View(ch)
 ch <- ch[,-2:-31]
-write.csv(ch, file = "ch.csv")
+write.csv(ch, file = here("data", "ch.csv"))
 
 # 
 # ####### PREDICTIVE ANALYTICS #####################################################
