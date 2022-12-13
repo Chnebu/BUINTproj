@@ -124,6 +124,8 @@ ch.mortgage.rates$Date <- as.Date(date.ch.mortgage.rates, formats = "%Y/%m/%d")
 
 summary(ch.mortgage.rates)
 View(ch.mortgage.rates)
+# remove NA values
+ch.mortgage.rates <- ch.mortgage.rates[-55,]
 
 # plot Average -> variable red, fixed blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
