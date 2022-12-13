@@ -9,6 +9,22 @@ library(performance)
 library(magrittr)
 library(see)
 
+##### DATA CLEANING
+# Step 1 - Handle missing values in data
+# Step 2 - Identify and reduce noise in the data 
+#          statistical techniques: outliers, averages, st. dev.
+#          cluster analysis -> remove outliers by binning, regression or simple averages
+# Step 3 - Find and eliminate erroneous data (odd values, other than outliers)
+
+#### DATA TRANSFORMATION
+# Step 1 - Normalize the data -DONE
+# Step 2 - Discretize or aggregate the data - DONE
+# Step 3 - Construct new attributes - DONE
+
+#### DATA REDUCTION
+# Step 1 - reduce number of attributes - DONE 
+# Step 2 - reduce number of records - DONE
+# Step 3 - Balance skewed data - 
 
 #### IMPORT DATA
 
@@ -55,7 +71,8 @@ summary(ch.house.prices$Privately.owned.apartments.4)
 
 # should we remove the outliers? if so how???
 
-
+summary(ch.house.prices)
+View(ch.house.prices)
 
 
 # add new column for averages
@@ -361,7 +378,7 @@ ch$ch.average.int.rates.linked.br <- as.numeric(ch$ch.average.int.rates.linked.b
 # is really hight -> let's fix this before calculating the correlation 
 
 skewness(ch$ch.average.fixed.int.rates)  # output: 0.8640249
- skewness(ch$ch.average.int.rates.nl.br) # output: -1.346626
+skewness(ch$ch.average.int.rates.nl.br) # output: -1.346626
 
 skewness.corrected.ch <- ch
 
