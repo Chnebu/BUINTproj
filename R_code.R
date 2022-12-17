@@ -9,23 +9,6 @@ library(performance)
 library(magrittr)
 library(see)
 
-##### DATA CLEANING
-# Step 1 - Handle missing values in data
-# Step 2 - Identify and reduce noise in the data 
-#          statistical techniques: outliers, averages, st. dev.
-#          cluster analysis -> remove outliers by binning, regression or simple averages
-# Step 3 - Find and eliminate erroneous data (odd values, other than outliers)
-
-#### DATA TRANSFORMATION
-# Step 1 - Normalize the data -DONE
-# Step 2 - Discretize or aggregate the data - DONE
-# Step 3 - Construct new attributes - DONE
-
-#### DATA REDUCTION
-# Step 1 - reduce number of attributes - DONE 
-# Step 2 - reduce number of records - DONE
-# Step 3 - Balance skewed data - 
-
 #### IMPORT DATA
 
 # import/read in data files
@@ -85,6 +68,7 @@ ch.house.prices.for.boxplot %>%
   ggplot(aes(x = variable, y = value), na.rm = TRUE)+
   geom_boxplot()+
   theme(axis.text.x = element_text(angle = 60,vjust = 0.5,hjust = 1))+
+  labs(x = "type", y = "Index points house prices")+
   ggtitle("Boxplot CH House Prices - to find outliers")
 
 # we can see that there are outliers in "privately.owned.apartments.3" (the outliers are too low)
@@ -115,6 +99,7 @@ ggplot(ch.house.prices, aes(x = Date))+
   geom_point(aes(y = apartment.buildings.average), na.rm = TRUE, size = 2, color = "green")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  labs(x = "time period", y = "Index points house prices")+
   labs(caption = "Green: apartment.buildings, Red: private.apartments, Blue: single.family.houses")+
   ggtitle("CH House prices")
 
@@ -160,6 +145,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Average.of.M..Mortgages.with.fixed.interest.rates..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "black")+
   #geom_line(aes(y = average.fixed.int.rates), na.rm = TRUE, size = 1, color = "red")+
   
+  labs(x = "time period", y = "interest rates")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   labs(caption = "variable NL BR: green, orange (5-15Mio), 
@@ -168,7 +154,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   ggtitle("CH Mortgage Rates")
 
 
-# INTERPRETATION AND CLUSTERING
+# INTERPRETATION AND CLUSTERING AND IRRAGULARITIES
 
 # calculate mean of [2] Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.  
 #                   [4] Average.of.M..Mortgages.Var.Int.Rates...NL.BR..CHF.100k...500k. 
@@ -260,6 +246,7 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.with.fixed.interest.rates..CHF.1.Mio...5.Mio.), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.with.fixed.interest.rates..CHF.5.Mio...15.Mio.), na.rm = TRUE, size = 2, color = "blue")+
   
+  labs(x = "time period", y = "sum of n loan mortgages")+
   labs(caption = "variable NL BR: red, 
        variable Linked BR: orange, 
        fixed int rates: blue")+
@@ -311,6 +298,7 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
 #  geom_line(aes(y = us.fees.and.discount.points.average), na.rm = TRUE, size = 1, color = "red")+  
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  labs(x = "time period", y = "interest rates")+
   labs(caption = "Green: 30y, Red: 15y, Blue: 5y, Mortgages & Fees, Discount points")+
   ggtitle("US Mortgage Rates")
   
@@ -330,6 +318,7 @@ ggplot((us.house.prices), aes(x = Date))+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 2, color = "red")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
+  labs(x = "time period", y = "house prices")+
   ggtitle("US House Prices")
 
 
@@ -363,7 +352,6 @@ summary(model.us)
 # create empty table (this is where the numbers are put in the loop)
 us.house.prices.second.try = data.frame(Date=character(0),all.homes=numeric(0), single.family=numeric(0), 
                                         condos=numeric(0), one.room=numeric(0), five.rooms=numeric(0))
-print(us.house.prices.second.try)
 
 ## CONVERT TO Quarters
 # matrix starts at 1
@@ -400,16 +388,20 @@ View(us.house.prices.second.try.for.boxplot)
 us.house.prices.second.try.for.boxplot$value <- as.numeric(us.house.prices.second.try.for.boxplot$value)
 
 us.house.prices.second.try.for.boxplot %>%
-  ggplot(aes(x = variable, y = value), na.rm = TRUE)+
+  ggplot(aes(x = variable, y = value))+
   geom_boxplot()+
+  scale_y_continuous(labels = comma)+
+  labs(x = "type", y = "house prices")+
   ggtitle("Boxplot US House Prices, 2nd data set - to find outliers")
 # we can see that there are outliers in "privately.owned.appartments.3" (the outliers are too low)
 # and "privately.owned.appartments.3" (the outliers are too high)
 
 us.house.prices.second.try.for.boxplot %>%
   ggplot(aes(x = Date, y = value))+
-  geom_point(aes(na.rm = TRUE, color = variable))+
+  geom_point(aes(color = variable))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  scale_y_continuous(labels = comma)+
+  labs(x = "time period", y = "house prices")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("US House Prices")
 
@@ -443,11 +435,12 @@ us %>%
   geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
   geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  scale_y_continuous(labels = comma)+
   labs(caption = "2nd Data Set: 
   single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
   1st Data Set: Real.Estate.Prices: red
   We can see: the 1st data set is similar to the data from the 2nd data set for five.rooms")+
-  labs(x = "house prices", y = "Time Period")+
+  labs(x = "time period", y = "house prices")+
   ggtitle("US House Prices with new Data")
 
 
@@ -463,6 +456,7 @@ us %>%
   geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
   geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  scale_y_continuous(labels = comma)+
   labs(caption = "2nd Data Set: 
   single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple
   1st Data Set: Real.Estate.Prices: red
@@ -481,6 +475,7 @@ ggplot(us, aes(x = Date))+
   geom_point(aes(y = five.rooms), na.rm = TRUE, colour = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
+  scale_y_continuous(labels = comma)+
   scale_y_continuous(sec.axis = sec_axis(trans=~./60000, name= "interest rates"))+
   labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
   fixed interest rate average: black")+
@@ -495,6 +490,7 @@ ggplot(us, aes(x = us.fixed.rate.average))+
   geom_point(aes(y = one.room), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = five.rooms), na.rm = TRUE, size = 2, color = "purple")+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, color = "red")+
+  scale_y_continuous(labels = comma)+
   labs(x = "house prices", y = "interest rates")+
   labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
   We can see that there is probably not much correlation since the dots are almost scattered vertically")+
@@ -514,6 +510,7 @@ ggplot(us, aes(x = us.fixed.rate.average))+
   geom_smooth(aes(y = five.rooms), na.rm = TRUE, size = 1, color = "purple", method = lm)+
   geom_point(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 2, color = "red")+
   geom_smooth(aes(y = Real.Estate.Prices), na.rm = TRUE, size = 1, color = "red", method = lm)+
+  scale_y_continuous(labels = comma)+
   labs(x = "house prices", y = "interest rates")+
   labs(caption = "single family: light green, all homes: orange, condos: dark green, one room: blue, five rooms: purple, Real.Estate.Prices: red
   We can see that there is almost no correlation, the line is almost vertical and the confidence band is really big")+
@@ -529,8 +526,14 @@ ggplot(us, aes(x = us.fixed.rate.average))+
 
 ####### US data 1991 ####################################################
 
+# join data
 us.1991 <- full_join(us.house.prices.1991, us.mortgage.rates.1991, by = "Date")
 View(us.1991)
+
+# remove NA values
+us.1991 <- us.1991[-128,]
+us.1991 <- us.1991[-1,]
+us.1991 <- us.1991[-2,]
 
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
@@ -538,7 +541,6 @@ View(us.1991)
 us.correlation.1991.30y <- cor(us.1991$house.prices.1991, us.1991$mortgage.30y, use = "complete.obs", method = "pearson")
 us.correlation.1991.30y
 #   CORRELATION IS -0.8325875  	  -> VERY STRONG CORRELATION
-### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 
 model.us.1991.30y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.30y, data=us.1991 )
@@ -557,18 +559,17 @@ summary(model.us.1991.30y)
 us.correlation.1991.15y <- cor(us.1991$house.prices.1991, us.1991$mortgage.15y, use = "complete.obs", method = "pearson")
 us.correlation.1991.15y
 #   CORRELATION IS -0.8279419 	-> VERY STRONG CORRELATION
-### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 model.us.1991.15y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.15y, data=us.1991 )
 summary(model.us.1991.15y)
 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)             533994      16202   32.96   <2e-16 ***
-#  us.1991$mortgage.30y   -44938       2696  -16.67   <2e-16 ***
+# (Intercept)             494023      14167   34.87   <2e-16 ***
+#  us.1991$mortgage.15y   -42051       2568  -16.37   <2e-16 ***
 
-# Multiple R-squared:  0.6932,	Adjusted R-squared:  0.6907 
-# F-statistic: 277.9 on 1 and 123 DF,  p-value: < 2.2e-16
+# Multiple R-squared:  0.6855,	Adjusted R-squared:  0.6829
+# F-statistic: 268.1 on 1 and 123 DF,  p-value: < 2.2e-16
 
 # p-value < 0.05 model is relevant! There is a lot of correlation
 
@@ -584,6 +585,7 @@ ggplot(aes(x = Date))+
   geom_point(aes(y = house.prices.1991), na.rm = TRUE, color = "black", size = 2)+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   scale_y_continuous(sec.axis = sec_axis(trans=~./50000, name= "interest rates"))+
+  scale_y_continuous(labels = comma)+
   labs(x = "time period", y = "house prices")+
   labs(caption = "US mortgage 30y: green, 
        US mortgage 15y: red, 
@@ -594,6 +596,7 @@ ggplot(aes(x = Date))+
 ggplot(us.1991, aes(x = house.prices.1991))+
   geom_point(aes(y = mortgage.30y), na.rm = TRUE, size = 2, color = "green")+
   geom_point(aes(y = mortgage.15y), na.rm = TRUE, size = 2, color = "red")+
+  scale_x_continuous(labels = comma)+
   labs(caption = "US mortgage 30y: green, 
        US mortgage 15y: red")+
   labs(x = "house prices", y = "interest rates")+
@@ -605,6 +608,7 @@ ggplot(us.1991, aes(x = house.prices.1991))+
   geom_smooth(aes(y = mortgage.30y), na.rm = TRUE, size = 1, color = "green", method = lm)+
   geom_point(aes(y = mortgage.15y), na.rm = TRUE, size = 2, color = "red")+
   geom_smooth(aes(y = mortgage.15y), na.rm = TRUE, size = 1, color = "red", method = lm)+
+  scale_x_continuous(labels = comma)+
   labs(caption = "US mortgage 30y: green, 
        US mortgage 15y: red")+
   labs(x = "house prices", y = "interest rates")+
@@ -617,7 +621,9 @@ ggplot(us.1991, aes(x = house.prices.1991))+
 ################## Join the CH data ###########################################
 
 ch <- full_join(ch.mortgage.rates, ch.house.prices, by = "Date")
-# ch <- na.omit(ch)
+
+# remove NA values in last row
+ch <- ch[-55,]
 View(ch)
 
 ch$ch.average.int.rates.linked.br <- as.numeric(ch$ch.average.int.rates.linked.br)
@@ -625,13 +631,13 @@ ch$ch.average.int.rates.linked.br <- as.numeric(ch$ch.average.int.rates.linked.b
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
 cor(ch$ch.average.fixed.int.rates, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
-#  CORRELATION IS -0.8785073
+#  CORRELATION IS -0.884212
 
 cor(ch$ch.average.int.rates.linked.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
-#  CORRELATION IS -0.6237408
+#  CORRELATION IS -0.7436318
 
 cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complete.obs", method = "pearson")
-#  CORRELATION IS -0.7066481
+#  CORRELATION IS -0.9296063
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
 
@@ -639,31 +645,31 @@ model.fixed.int.rates <- lm(ch$ch.average.fixed.int.rate~ ch$total.house.prices.
 summary(model.fixed.int.rates)
 #Coefficients:
 #                                   Estimate  Std. Error t value Pr(>|t|)    
-#(Intercept)                         0.52824    0.10060   5.251  2.84e-06 ***
-#  ch$total.house.prices.average.ch  0.18025    0.01921   9.382  8.97e-13 ***
-# Intercept: 0.52824
-# Multiple R-squared:  0.6286,	Adjusted R-squared:  0.6215 
-# p-value: 8.966e-13 <- reject Null Hypothesis, model is relevant!
+#  (Intercept)                    4.059492   0.194404   20.88   <2e-16 ***
+#  ch$total.house.prices.average -0.016569   0.001214  -13.65   <2e-16 ***
+
+# Multiple R-squared:  0.7818,	Adjusted R-squared:  0.7776  
+# p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
 model.nl.br <- lm(ch$ch.average.int.rates.nl.br~ ch$total.house.prices.average, data=ch)
 summary(model.nl.br)
 # Coefficients:
 #                                     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)                       2.497604   0.033543  74.460   <2e-16 ***
-#  ch$total.house.prices.average.ch 0.047627   0.006406   7.435    1e-09 ***
-# Intercept: 2.497604
-# Multiple R-squared:  0.5153,	Adjusted R-squared:  0.5059 
-# p-value: 1.004e-09 <- reject Null Hypothesis, model is relevant!
+# (Intercept)                     3.4079046  0.0366471   92.99   <2e-16 ***
+#  ch$total.house.prices.average -0.0041618  0.0002288  -18.19   <2e-16 ***
+
+# Multiple R-squared:  0.8642,	Adjusted R-squared:  0.8616 
+# p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
 model.linked.br <- lm(ch$ch.average.int.rates.linked.br~ ch$total.house.prices.average, data=ch)
 summary(model.linked.br)
 # Coefficients:
 #                                    Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)                        0.83236    0.02681   31.046  < 2e-16 ***
-#  ch$total.house.prices.average.ch  0.03003    0.00512   5.866  3.14e-07 ***
-# Intercept: 0.83236
-# Multiple R-squared:  0.3982,	Adjusted R-squared:  0.3866 
-# p-value: 3.137e-07 <- reject Null Hypothesis, model is relevant!
+# (Intercept)                     1.4456227  0.0582575   24.81  < 2e-16 ***
+#  ch$total.house.prices.average -0.0029174  0.0003637   -8.02 1.18e-10 ***
+
+# Multiple R-squared:  0.553,	Adjusted R-squared:  0.5444
+# p-value: 1.182e-10 <- reject Null Hypothesis, model is relevant!
 
 # two plots combined - interest rates and house prices
 ggplot(ch, aes(x = Date))+
@@ -723,6 +729,10 @@ colnames(ch)[1] <- "Date" # rename first column, which is now "Date.ch" to Date,
 View(ch)
 
 final.data <- full_join(ch, us, by = "Date")
+
+# remove NA values in last row
+final.data <- final.data[-55,]
+
 View(final.data)
 summary(final.data)
 # colnames(final.data)
@@ -778,10 +788,12 @@ ggplot(final.data, aes(x = Date))+
   geom_point(aes(y = private.apartements.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = single.family.houses.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = apartment.buildings.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  labs(x = "Date", y = "house price US")+
+  labs(x = "time period", y = "house price US")+
+  scale_y_continuous(labels = comma)+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
-  labs(caption = "CH house rices: blue, US house prices: orange/red")
+  labs(caption = "CH house rices: blue, US house prices: orange/red")+
+  ggtitle("Comparing house prices US and CH")
 # The data in from CH is in points :(  ????
 
 
@@ -799,9 +811,10 @@ ggplot(final.data, aes(x = Date))+
   geom_line(aes(y = fixed.Rate.Avg.30.Year.us), na.rm = TRUE, size = 1, color = "orange")+
   geom_point(aes(y = fixed.Rate.Avg.5.Year.us), na.rm = TRUE, size = 2, color = "orange")+
   geom_line(aes(y = fixed.Rate.Avg.5.Year.us), na.rm = TRUE, size = 1, color = "orange")+
-  labs(x = "Date", y = "interest rate")+
+  labs(x = "time period", y = "interest rate")+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
-  labs(caption = "CH: blue, US: orange")
+  labs(caption = "CH: blue, US: orange")+
+  ggtitle("Comparing interest rates US and CH")
 
 
 
