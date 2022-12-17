@@ -47,6 +47,8 @@ ch.house.prices[55,12] <- ch.house.prices[54,12]
 private.apartements.average <- c(rowMeans(ch.house.prices[,2:5], na.rm = TRUE))
 ch.house.prices <- cbind(ch.house.prices, private.apartements.average = private.apartements.average)
 
+View(private.apartements.average)
+
 # single family houses
 single.family.houses.average <- c(rowMeans(ch.house.prices[,6:9], na.rm = TRUE))
 ch.house.prices <- cbind(ch.house.prices, single.family.houses.average = single.family.houses.average)
@@ -811,12 +813,13 @@ ggplot(final.data, aes(x = Date))+
   geom_point(aes(y = private.apartements.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = single.family.houses.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
   geom_point(aes(y = apartment.buildings.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
-  labs(x = "Time Period", y = "Housing Price")+
+  labs(x = "Time Period", y = "Housing Price CHF and USD respectively")+
   scale_y_continuous(labels = comma)+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   #scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
-  labs(caption = "CH house rices: blue, US house prices: orange/red")+
-  ggtitle("Comparing house prices US and CH")
+#  labs(caption = "Blue: CH house prices || Orange: US house prices, 1 & 5 rooms || Red: US house prices of 2nd source")+
+  labs(caption = "[b--l]: CH house prices || [o--e]: US house prices, 1 & 5 rooms || [r--d]: US house prices of 2nd source")+
+    ggtitle("Comparing house prices US and CH")
 # The data in from CH is in points :(  ???? -> NOW SOLVED:)
 
 
