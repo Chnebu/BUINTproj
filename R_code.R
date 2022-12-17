@@ -325,7 +325,7 @@ ggplot((us.house.prices), aes(x = Date))+
 
 ################## Join the US data ###########################################
 
-summary(us)
+#summary(us)
 us <- full_join(us.mortgage.rates, us.house.prices, by = "Date")
 View(us)
 
@@ -776,25 +776,34 @@ colnames(final.data)
 # "us.fees.and.discount.points.average.us"
 
 
+### added columns to final.dataframe for house price estimation based off index values.
+#goal number 2022 from: https://realadvisor.ch/en/property-prices
+final.data$private.apartements.average.ch.indexbased.calculation <- final.data$private.apartements.average.ch*3900
+final.data$single.family.houses.average.ch.indexbased.calculation <- final.data$single.family.houses.average.ch*5815
+final.data$apartment.buildings.average.ch.indexbased.calculation <- final.data$apartment.buildings.average.ch*3900
+#View(final.data)
+### could delete final.data$test.Houseprices.CH.Indexbased if someone knows how:DD
 
 ### Comparing house prices 
 ggplot(final.data, aes(x = Date))+
-  geom_point(aes(y = ch.average.int.rates.nl.br.ch), na.rm = TRUE, size = 2, color = "orange")+
-  geom_point(aes(y = ch.average.int.rates.linked.br.ch), na.rm = TRUE, size = 2, color = "orange")+
-  geom_point(aes(y = ch.average.fixed.int.rates.ch), na.rm = TRUE, size = 2, color = "orange")+
+  
+  #commented out bc. interest rate is always 1-10% -> not viewable here in up to 1.2m
+#  geom_point(aes(y = ch.average.int.rates.nl.br.ch), na.rm = TRUE, size = 2, color = "orange")+
+#  geom_point(aes(y = ch.average.int.rates.linked.br.ch), na.rm = TRUE, size = 2, color = "orange")+
+#  geom_point(aes(y = ch.average.fixed.int.rates.ch), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = one.room.us), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = five.rooms.us), na.rm = TRUE, size = 2, color = "orange")+
   geom_point(aes(y = Real.Estate.Prices.us), na.rm = TRUE, size = 2, color = "red")+
-  geom_point(aes(y = private.apartements.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = single.family.houses.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  geom_point(aes(y = apartment.buildings.average.ch*2000), na.rm = TRUE, size = 2, color = "blue")+
-  labs(x = "time period", y = "house price US")+
+  geom_point(aes(y = private.apartements.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = single.family.houses.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
+  geom_point(aes(y = apartment.buildings.average.ch.indexbased.calculation), na.rm = TRUE, size = 2, color = "blue")+
+  labs(x = "Time Period", y = "Housing Price")+
   scale_y_continuous(labels = comma)+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
-  scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
+  #scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
   labs(caption = "CH house rices: blue, US house prices: orange/red")+
   ggtitle("Comparing house prices US and CH")
-# The data in from CH is in points :(  ????
+# The data in from CH is in points :(  ???? -> NOW SOLVED:)
 
 
 ### Comparing interest rates 
