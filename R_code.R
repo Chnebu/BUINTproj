@@ -336,7 +336,7 @@ us.correlation
 #   CORRELATION IS -0.2065972   	
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
-model.us <- lm(us$us.fixed.rate.average~ us$Real.Estate.Prices, data=us)
+model.us <- lm(us$Real.Estate.Prices~ us$us.fixed.rate.average, data=us)
 summary(model.us)
 # p-value: 0.1339 <- we cannot reject H0 - the model has no relevance
 
@@ -640,9 +640,9 @@ cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complet
 #  CORRELATION IS -0.9296063
 ### 1 or -1 would be a perfect correlation - 0 would be no correlation at all
 
-
-model.fixed.int.rates <- lm(ch$ch.average.fixed.int.rate~ ch$total.house.prices.average, data=ch)
-summary(model.fixed.int.rates)
+########## possible models for predicting int. rates with house pries
+model.pred.fixed.int.rates <- lm(ch$ch.average.fixed.int.rate~ ch$total.house.prices.average, data=ch)
+summary(model.pred.fixed.int.rates)
 #Coefficients:
 #                                   Estimate  Std. Error t value Pr(>|t|)    
 #  (Intercept)                    4.059492   0.194404   20.88   <2e-16 ***
@@ -651,8 +651,8 @@ summary(model.fixed.int.rates)
 # Multiple R-squared:  0.7818,	Adjusted R-squared:  0.7776  
 # p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
-model.nl.br <- lm(ch$ch.average.int.rates.nl.br~ ch$total.house.prices.average, data=ch)
-summary(model.nl.br)
+model.pred.nl.br <- lm(ch$ch.average.int.rates.nl.br~ ch$total.house.prices.average, data=ch)
+summary(model.pred.nl.br)
 # Coefficients:
 #                                     Estimate Std. Error t value Pr(>|t|)    
 # (Intercept)                     3.4079046  0.0366471   92.99   <2e-16 ***
@@ -661,8 +661,8 @@ summary(model.nl.br)
 # Multiple R-squared:  0.8642,	Adjusted R-squared:  0.8616 
 # p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
-model.linked.br <- lm(ch$ch.average.int.rates.linked.br~ ch$total.house.prices.average, data=ch)
-summary(model.linked.br)
+model.pred.linked.br <- lm(ch$ch.average.int.rates.linked.br~ ch$total.house.prices.average, data=ch)
+summary(model.pred.linked.br)
 # Coefficients:
 #                                    Estimate Std. Error t value Pr(>|t|)    
 # (Intercept)                     1.4456227  0.0582575   24.81  < 2e-16 ***
@@ -670,6 +670,20 @@ summary(model.linked.br)
 
 # Multiple R-squared:  0.553,	Adjusted R-squared:  0.5444
 # p-value: 1.182e-10 <- reject Null Hypothesis, model is relevant!
+
+
+########## possible models for predicting house prices with int. rates
+model.pred.house.prices.w.fixed.int.rates <- lm(ch$total.house.prices.average~ ch$ch.average.fixed.int.rates, data=ch)
+summary(model.pred.house.prices.w.fixed.int.rates)
+
+model.pred.house.prices.w.nl.br <- lm(ch$total.house.prices.average~ ch$ch.average.int.rates.nl.br, data=ch)
+summary(model.pred.house.prices.w.nl.br)
+
+model.pred.house.prices.w.linked.br <- lm(ch$total.house.prices.average~ ch$ch.average.int.rates.linked.br, data=ch)
+summary(model.pred.house.prices.w.linked.br)
+
+# same p-values as before, when predicting the interest rates with the house prices 
+# -> however it makes more sense to predict the house prices with interest rates
 
 # two plots combined - interest rates and house prices
 ggplot(ch, aes(x = Date))+
