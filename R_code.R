@@ -29,7 +29,7 @@ us.mortgage.rates.1991 <- read.csv(here("data", "us-mortgage-rates-1991.csv"))
 
 ############# DATA CLEANING - CH House Prices #######################################################################
 
-summary(ch.house.prices)
+# summary(ch.house.prices)
 View(ch.house.prices)
 
 ch.house.prices <- ch.house.prices[,-2]
@@ -105,10 +105,16 @@ ggplot(ch.house.prices, aes(x = Date))+
   labs(caption = "Green: apartment.buildings, Red: private.apartments, Blue: single.family.houses")+
   ggtitle("CH House prices")
 
+skewness(ch.house.prices$private.apartements.average)
+# -0.4877892
+
+skewness(ch.house.prices$single.family.houses.average)
+# 0.08077835    
+
+skewness(ch.house.prices$apartment.buildings.average)
+# -0.1458798   
 
 
-
-          
 ############### DATA CLEANING - CH Mortgage Rates ###################################################
 
 
@@ -116,7 +122,7 @@ ggplot(ch.house.prices, aes(x = Date))+
 date.ch.mortgage.rates <- as.character(ch.mortgage.rates$Date)
 ch.mortgage.rates$Date <- as.Date(date.ch.mortgage.rates, formats = "%Y/%m/%d")
 
-summary(ch.mortgage.rates)
+# summary(ch.mortgage.rates)
 View(ch.mortgage.rates)
 # remove NA values
 ch.mortgage.rates <- ch.mortgage.rates[-55,]
@@ -225,7 +231,6 @@ average.fixed.int.rates <- rowMeans(select(ch.mortgage.rates,c("Average.of.M..Mo
 ch.mortgage.rates <- cbind(ch.mortgage.rates, ch.average.fixed.int.rates = average.fixed.int.rates)
 View(ch.mortgage.rates)
 
-
 # plot Sum -> NL BR variable = red, Linked BR variable = orange, fixed = blue
 ggplot((ch.mortgage.rates), aes(x = Date))+
   geom_point(aes(y = Sum.of.N.Loan.Mortgages.Var.Int.Rates...NL.BR..CHF.50k...100k.), na.rm = TRUE, size = 2, color = "red")+
@@ -256,11 +261,14 @@ ggplot((ch.mortgage.rates), aes(x = Date))+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH Sum of Loan Mortgages")
 
+skewness(ch.mortgage.rates$ch.average.int.rates.nl.br)
+# -0.4354741
 
-
-
-
+skewness(ch.mortgage.rates$ch.average.int.rates.linked.br)
+# -0.114246
           
+skewness(ch.mortgage.rates$ch.average.fixed.int.rates)
+# 0.8640249
 
 ########### DATA CLEANING - US Mortgage Rates ###################################################
 
@@ -307,7 +315,14 @@ ggplot((us.mortgage.rates), aes(x = Date, colour = Year))+
 # what can we see: Banks somehow in 2020 wanted to sell more short-term loans (probably less 
 # risk for them during times of rising rates, bc. customers have to ajust in 5y.)
 
+skewness(us.mortgage.rates$fixed.Rate.Avg.15.Year)
+# 0.1481844
 
+skewness(us.mortgage.rates$fixed.Rate.Avg.30.Year)
+# 0.3812491
+
+skewness(us.mortgage.rates$fixed.Rate.Avg.5.Year)
+# 0.9983479
   
 ########### DATA CLEANING - US House Prices ##############################################
 
@@ -323,7 +338,8 @@ ggplot((us.house.prices), aes(x = Date))+
   labs(x = "time period", y = "house prices")+
   ggtitle("US House Prices")
 
-
+skewness(us.house.prices$Real.Estate.Prices)
+#  0.7281284
 
 ################## Join the US data ###########################################
 
@@ -537,6 +553,8 @@ us.1991 <- us.1991[-128,]
 us.1991 <- us.1991[-1,]
 us.1991 <- us.1991[-2,]
 
+skewness(us.1991$house.prices.1991)
+# 0.4730644
 
 # CORRELATION <------ Measures the relative strength of a linear relationship btw. 2 variables
 # calculate correlation ("complete.obs" to make it ignore the NA values)
@@ -546,7 +564,7 @@ us.correlation.1991.30y
 
 
 model.us.1991.30y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.30y, data=us.1991 )
-summary(model.us.1991.30y)
+# summary(model.us.1991.30y)
 # Coefficients:
 #                        Estimate Std. Error t value Pr(>|t|)    
 # (Intercept)              533994      16202   32.96   <2e-16 ***
@@ -563,7 +581,7 @@ us.correlation.1991.15y
 #   CORRELATION IS -0.8279419 	-> VERY STRONG CORRELATION
 
 model.us.1991.15y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.15y, data=us.1991 )
-summary(model.us.1991.15y)
+# summary(model.us.1991.15y)
 
 # Coefficients:
 #   Estimate Std. Error t value Pr(>|t|)    
@@ -585,6 +603,7 @@ ggplot(aes(x = Date))+
   geom_point(aes(y = mortgage.30y*50000), na.rm = TRUE, size = 2, color = "green")+
   geom_point(aes(y = mortgage.15y*50000), na.rm = TRUE, size = 2, color = "red")+
   geom_point(aes(y = house.prices.1991), na.rm = TRUE, color = "black", size = 2)+
+  theme(axis.text.x = element_text(angle = 60,vjust = 0.5,hjust = 1))+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   scale_y_continuous(sec.axis = sec_axis(trans=~./50000, name= "interest rates"))+
   scale_y_continuous(labels = comma)+
@@ -644,7 +663,7 @@ cor(ch$ch.average.int.rates.nl.br, ch$total.house.prices.average, use = "complet
 
 ########## possible models for predicting int. rates with house pries
 model.pred.fixed.int.rates <- lm(ch$ch.average.fixed.int.rate~ ch$total.house.prices.average, data=ch)
-summary(model.pred.fixed.int.rates)
+# summary(model.pred.fixed.int.rates)
 #Coefficients:
 #                                   Estimate  Std. Error t value Pr(>|t|)    
 #  (Intercept)                    4.059492   0.194404   20.88   <2e-16 ***
@@ -654,7 +673,7 @@ summary(model.pred.fixed.int.rates)
 # p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
 model.pred.nl.br <- lm(ch$ch.average.int.rates.nl.br~ ch$total.house.prices.average, data=ch)
-summary(model.pred.nl.br)
+# summary(model.pred.nl.br)
 # Coefficients:
 #                                     Estimate Std. Error t value Pr(>|t|)    
 # (Intercept)                     3.4079046  0.0366471   92.99   <2e-16 ***
@@ -664,7 +683,7 @@ summary(model.pred.nl.br)
 # p-value: < 2.2e-16 <- reject Null Hypothesis, model is relevant!
 
 model.pred.linked.br <- lm(ch$ch.average.int.rates.linked.br~ ch$total.house.prices.average, data=ch)
-summary(model.pred.linked.br)
+# summary(model.pred.linked.br)
 # Coefficients:
 #                                    Estimate Std. Error t value Pr(>|t|)    
 # (Intercept)                     1.4456227  0.0582575   24.81  < 2e-16 ***
@@ -676,13 +695,13 @@ summary(model.pred.linked.br)
 
 ########## possible models for predicting house prices with int. rates
 model.pred.house.prices.w.fixed.int.rates <- lm(ch$total.house.prices.average~ ch$ch.average.fixed.int.rates, data=ch)
-summary(model.pred.house.prices.w.fixed.int.rates)
+# summary(model.pred.house.prices.w.fixed.int.rates)
 
 model.pred.house.prices.w.nl.br <- lm(ch$total.house.prices.average~ ch$ch.average.int.rates.nl.br, data=ch)
-summary(model.pred.house.prices.w.nl.br)
+# summary(model.pred.house.prices.w.nl.br)
 
 model.pred.house.prices.w.linked.br <- lm(ch$total.house.prices.average~ ch$ch.average.int.rates.linked.br, data=ch)
-summary(model.pred.house.prices.w.linked.br)
+# summary(model.pred.house.prices.w.linked.br)
 
 # same p-values as before, when predicting the interest rates with the house prices 
 # -> however it makes more sense to predict the house prices with interest rates
@@ -750,7 +769,7 @@ final.data <- full_join(ch, us, by = "Date")
 final.data <- final.data[-55,]
 
 View(final.data)
-summary(final.data)
+# summary(final.data)
 # colnames(final.data)
 
 # Too many column names, it's a bit confusing - let's remove rows 2-31 (CH interest rates, which are not averaged)
@@ -820,7 +839,7 @@ ggplot(final.data, aes(x = Date))+
 #  labs(caption = "Blue: CH house prices || Orange: US house prices, 1 & 5 rooms || Red: US house prices of 2nd source")+
   labs(caption = "[b--l]: CH house prices || [o--e]: US house prices, 1 & 5 rooms || [r--d]: US house prices of 2nd source")+
     ggtitle("Comparing house prices US and CH")
-# The data in from CH is in points :(  ???? -> NOW SOLVED:)
+# The data in from CH is in points :(  ???? -> NOW SOLVED :)
 
 
 ### Comparing interest rates 
@@ -844,148 +863,8 @@ ggplot(final.data, aes(x = Date))+
 
 
 
-
+# to save data for predictive analytics
 View(ch)
 ch <- ch[,-2:-31]
 write.csv(ch, file = here("data", "ch.csv"))
 
-# 
-# ####### PREDICTIVE ANALYTICS #####################################################
-# ####### trying to make a linear model ###########################################
-# 
-# #THE FOLLOWING CODE IS BASED ON THE "LINEAR REGRESSION AND EXTENSIONS SW08" FROM ILIAS 
-# 
-# # Too many column names, it's a bit confusing - let's remove rows 2-31 (CH interest rates, which are not averaged)
-# 
-# ch <- na.omit(ch)
-# summary(ch)
-# skewness(ch$ch.average.int.rates.linked.br.ch) # for the linear model we're going to take the "linked br" variables 
-#                                                # since the correlation between "linked br" and house prices was biggest
-# # output: -0.114246  <----- very little skewness, we don't need to correct with "mirror x square root"
-# 
-# skewness(ch$total.house.prices.average.ch)
-# # output: -0.6129048  <----- this is is low/medium skewness, so we need to correct with "mirror natural log"
-# ch$total.house.prices.average.ch <- sqrt(max(ch$total.house.prices.average.ch+1) - ch$total.house.prices.average.ch)
-# skewness(ch$total.house.prices.average.ch)
-# # output: 0.005890946  <------ much better :)
-# 
-# lm.ch <- select(ch, c("Date", "ch.average.int.rates.linked.br.ch", "total.house.prices.average.ch"))
-# 
-# names(lm.ch) <- c("Date", "interest.rates", "house.prices")
-# lm.ch <- as.tibble(lm.ch)
-# lm.ch$Date <- lubridate::year(lm.ch$Date)
-# lm.ch$Date <- as.numeric(lm.ch$Date)
-# lm.ch$interest.rates <- as.numeric(lm.ch$interest.rates)
-# lm.ch$house.prices <- as.numeric(lm.ch$house.prices)
-# View(lm.ch)
-# 
-# # #regression
-# regression <- lm(house.prices~., data=lm.ch)
-# summary(regression)
-# 
-# drop1(regression, test = "F") 
-# 
-# regression.red <- lm(house.prices~interest.rates+Date, data=lm.ch)
-# summary(regression.red)
-# 
-# regression.red2 <- lm(house.prices~interest.rates, data=lm.ch)
-# summary(regression.red2)
-#  
-# regression.red3 <- lm(house.prices~Date, data=lm.ch)
-# summary(regression.red3)
-# 
-# anova(regression.red3,regression.red2,regression.red,regression)
-# 
-# 
-# (comparison <- compare_performance(regression.red3,regression.red2,regression.red,regression,rank=TRUE))
-# plot(comparison)
-# 
-# 
-# predicted <- predict(regression.red2, lm.ch)
-# 
-# residuals <- lm.ch$house.prices - predicted  # substract the predicted values from house.prices
-# residuals <- as.tibble(predicted) %>% mutate(real = lm.ch$house.prices, n=row_number()) %>% mutate(error= value-real, ratio=error/real)
-# 
-# 
-# ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
-#    geom_point(aes(x=n,y=value),color="red") +
-#    geom_segment(aes(x=n,xend=n,y=real,yend=value), color="yellow", size=1, alpha=0.5)+
-#    geom_line(aes(x=n,y=(value+real)/2),color="black")
-# 
-# residuals <- residuals %>% arrange(real)  %>% mutate(n = row_number())    
-# 
-# ggplot(data=residuals) + geom_point(aes(x=n,y=real),color="blue") +
-#   geom_point(aes(x=n,y=value),color="green", alpha=0.25) +
-#   geom_segment(aes(x=n,xend=n,y=real,yend=value, color=factor(sign(value-real),levels=c(-1,1))), size=1, alpha=0.5)+
-#   geom_line(aes(x=n,y=(value+real)/2),color="black") +
-#   theme(legend.position = "none")
-# 
-# # #another more compact way of seeing the "errors" --> called residuals
-# ggplot() + geom_point(data=residuals,aes(x=n,y=ratio)) + geom_abline(slope=0,color="red", alpha=0.5,size=3)
-# 
-# 
-# 
-# # ################## PERFORMACES estimation
-# # 
-# # #let's see how to compute performances: the most used approach is k-fold CrossValudation (CV):
-# # #  randomly divide the dataset into k subset and use k-1 of them for train the model and the remaining one
-# # #    for testing the performance: repeat till every combination is covered and then average them
-# # #ISSUE: with complex models and datasets not-small, computationally expensive
-# # 
-# # #Anyway, we will take the "shotcut" to this: we separate 30% of the point as test set and use
-# # #  the remaining 70% as train set, to create the model.
-# # 
-# # #let's use the model from the previous exercise: Attrition_DS
-# # 
-# # library(readr)
-# # 
-# # #separating test and training set
-# # set.seed(56)
-# # index_train <- sample(1:nrow(lm.ch),0.7*nrow(lm.ch))
-# # 
-# # lm.ch.train <- lm.ch[index_train,]
-# # dim(lm.ch.train)
-# # lm.ch.test  <- lm.ch[-index_train,]
-# # dim(lm.ch.test)
-# # 
-# # #let's try to have an estimator for the "DailyRate"
-# # #
-# # regression.2 <- lm(house.prices~., data=lm.ch.train)
-# # #equivalent will be: regression.2 <- lm(DailyRate~., data=lm.ch, subset = index_train)
-# # summary(regression.2)
-# # 
-# # drop1(regression.2, test="F")
-# # 
-# # drop1(update(regression.2, ~ . -Age ), test="F")
-# # 
-# # drop1(update(regression.2, ~ . -Age -EmployeeNumber), test="F")
-# # 
-# # drop1(update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction), test="F")
-# # 
-# # regression.2.1 <- lm(DailyRate~
-# #                        Attrition+MaritalStatus+TotalWorkingYears+TrainingTimesLastYear+WorkLifeBalance+
-# #                        Education+YearsAtCompany+EmployeeSource+
-# #                        HourlyRate+JobRole+YearsInCurrentRole+YearsSinceLastPromotion+YearsWithCurrManager+
-# #                        JobLevel+MonthlyRate+PercentSalaryHike+StockOptionLevel
-# #                      , data=lm.ch.train)
-# # 
-# # summary(regression.2.1)
-# # 
-# # regression.2.2 <- update(regression.2, ~ . -Age -EmployeeNumber -EnvironmentSatisfaction)
-# # 
-# # summary(regression.2.2)
-# # 
-# # 
-# # 
-# # anova(regression.2.1, regression.2.2, regression.2)
-# # 
-# # (comparison.2 <- compare_performance(regression.2,regression.2.2,regression.2.1,rank=TRUE))
-# # plot(comparison.2)
-# # 
-# # testcaseID=101
-# # test <- lm.ch[testcaseID,]
-# # test$DailyRate
-# # predict(regression.2.2, test)
-# # 
-# # 
-# # 
