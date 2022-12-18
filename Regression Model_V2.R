@@ -3,7 +3,6 @@
 #install.packages("ggiraph")
 #install.packages("moonBook")
 
-
 library(tidyverse)
 library(scales)
 library(ggplot2)
@@ -18,19 +17,11 @@ library(ggiraph)
 library(ggiraphExtra)
 library(moonBook)
 
-
-
 dataset <- read.csv(here("data", "ch.csv"))
-
-<<<<<<< Updated upstream
 View(dataset)
-=======
-
->>>>>>> Stashed changes
 head(dataset)
 
-################### skewness Lea ############################
-
+# check skewness
 skewness(dataset$ch.average.int.rates.linked.br.ch)
 # output: -0.114246 
 skewness(dataset$total.house.prices.average.ch)
@@ -63,9 +54,9 @@ cor(dataset$total.house.prices.average.ch, dataset$ch.average.int.rates.nl.br.ch
 cor(dataset$total.house.prices.average.ch, dataset$ch.average.fixed.int.rates.ch, use = "complete.obs", method = "pearson")
 #  -0.884212
 
-######################################REG MODEL TEST 1######################################################
+###################################### REG MODEL ######################################################
 
-# linked BR
+#------------------------------------- linked BR ------------------------------------------------------
  
 #y = mx + b
 
@@ -93,11 +84,7 @@ ggPredict(model.linked.br,se=FALSE,interactive=TRUE)
 
 
 
-###################################### copied Dylan's code to make more models ######################################################
-
-# NL BR
-
-#y = mx + b
+#-------------------------------------- NL BR----------------------------------------------------------
 
 model.nl.br <- lm(total.house.prices.average.ch ~ ch.average.int.rates.nl.br.ch, data = dataset)
 model.nl.br
@@ -106,8 +93,6 @@ print(summary(model.nl.br))
 # (Intercept)  ch.average.int.rates.nl.br.ch  
 # 729.2                         -207.6 
 
-#Model = estimated regression line equation: House Prices = -189.6*interest rates + 345.1
-#x = if you define interest rate it will give predictive result of average house price
 newIntRate <- data.frame(ch.average.int.rates.nl.br.ch = 1.22)
 result <- predict(model.nl.br, newIntRate)
 result
@@ -118,16 +103,11 @@ result
 ggplot(dataset,aes(y=total.house.prices.average.ch, x=ch.average.int.rates.nl.br.ch))+geom_point()+geom_smooth(method="lm")
 
 #Regression Model with Interaction - hover over graph to see Linear Model Equation, can turn it off by putting "interactive" on False
-#Not sure what "se" is.. could be confidence band but not sure.
 ggPredict(model.nl.br,se=FALSE,interactive=TRUE)
 
 
 
-
-
-
-
-# fixed int rates
+#--------------------------------------- fixed int rates -----------------------------------------------
 
 model.fixed.int.rates <- lm(total.house.prices.average.ch ~ ch.average.fixed.int.rates.ch, data = dataset)
 model.fixed.int.rates
@@ -136,8 +116,6 @@ print(summary(model.fixed.int.rates))
 # (Intercept)  ch.average.fixed.int.rates.ch  
 # 226.23                         -47.19  
 
-#Model = estimated regression line equation: House Prices = -189.6*interest rates + 345.1
-#x = if you define interest rate it will give predictive result of average house price
 newIntRate <- data.frame(ch.average.fixed.int.rates.ch = 1.22)
 result <- predict(model.fixed.int.rates, newIntRate)
 result
@@ -148,15 +126,12 @@ result
 ggplot(dataset,aes(y=total.house.prices.average.ch, x=ch.average.fixed.int.rates.ch))+geom_point()+geom_smooth(method="lm")
 
 #Regression Model with Interaction - hover over graph to see Linear Model Equation, can turn it off by putting "interactive" on False
-#Not sure what "se" is.. could be confidence band but not sure.
 ggPredict(model.fixed.int.rates,se=FALSE,interactive=TRUE)
 
 
 
 
-# linked BR, nl br and fixed int rates
-
-#y = mx + b
+# ------------------------------- linked BR, nl br and fixed int rates ---------------------------------------------------------
 
 model <- lm(total.house.prices.average.ch ~ ch.average.int.rates.linked.br.ch + ch.average.int.rates.nl.br.ch + ch.average.fixed.int.rates.ch, data = dataset)
 model
@@ -176,7 +151,7 @@ result
 # 581.3789 
 
 
-# don't know how to do this with multiple predictors
+# don't know how to do this with multiple predictors :(
 
 # #Regression Model
 # ggplot(dataset,aes(y=total.house.prices.average.ch, x=ch.average.int.rates.linked.br.ch))+geom_point()+geom_smooth(method="lm")+
@@ -187,7 +162,7 @@ result
 
 
 
-######################################## Lea is doing some tests ####################################################
+######################################## testing the different models ####################################################
 
 
 # we separate 30% of the point as test set and use
@@ -202,11 +177,11 @@ set.seed(56)
 index_train <- sample(1:nrow(dataset),0.7*nrow(dataset))  
 
 # create a new dataset with the training data
-dataset.train <- dataset[index_train,]    # <---- all the data after the splitting index
+dataset.train <- dataset[index_train,]    # create training set
 dim(dataset.train)  # <----- Retrieve or set the dimension of an object
 
 # create dataset with the test data
-dataset.test  <- dataset[-index_train,]    # <---- all the data before the splitting index
+dataset.test  <- dataset[-index_train,]    # create testing set
 dim(dataset.test)
 
 
@@ -236,8 +211,6 @@ ggplot(compare.result.linked.br.to.real.house.prices, aes(x = index))+
   theme(legend.position = "none")+
   labs(x = "nr", y = "house prices")+
   ggtitle("real house prices vs predicted result - Linked BR Model")
-
-
 
 
 
@@ -323,7 +296,7 @@ ggplot(compare.result.model.to.real.house.prices, aes(x = index))+
 
 
 
-####### Show different results in order to compare different models
+####### Show different results in order to compare different models #############################################################
 
 results <- cbind(compare.result.model.to.real.house.prices, 
                  linked.br=  compare.result.linked.br.to.real.house.prices$result.linked.br,
@@ -346,3 +319,26 @@ ggplot(results, aes(x = index))+
        all int rates: purple")+
   ggtitle("Plot with different results from different models")
 
+
+############# For Prescriptive Analysis #######################################################################
+
+# creating a model in order to tell how high the interest rates should be in order to have certain house prices
+
+model.house.prices <- lm(ch.average.fixed.int.rates.ch ~ total.house.prices.average.ch, data = dataset)
+model.house.prices
+print(summary(model.house.prices))
+#Coefficients:
+# (Intercept)  total.house.prices.average.ch  
+# 4.05949                       -0.01657  
+
+newIntRate <- data.frame(total.house.prices.average.ch = 240)
+result <- predict(model.house.prices, newIntRate)
+result
+# 1 
+# 0.08284866 
+
+#Regression Model
+ggplot(dataset,aes(y=ch.average.fixed.int.rates.ch, x=total.house.prices.average.ch))+geom_point()+geom_smooth(method="lm")
+
+#Regression Model with Interaction - hover over graph to see Linear Model Equation, can turn it off by putting "interactive" on False
+ggPredict(model.house.prices,se=FALSE,interactive=TRUE)

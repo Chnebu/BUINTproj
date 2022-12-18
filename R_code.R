@@ -560,7 +560,7 @@ skewness(us.1991$house.prices.1991)
 # calculate correlation ("complete.obs" to make it ignore the NA values)
 us.correlation.1991.30y <- cor(us.1991$house.prices.1991, us.1991$mortgage.30y, use = "complete.obs", method = "pearson")
 us.correlation.1991.30y
-#   CORRELATION IS -0.8325875  	  -> VERY STRONG CORRELATION
+#   CORRELATION IS -0.8301268  	  -> VERY STRONG CORRELATION
 
 
 model.us.1991.30y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.30y, data=us.1991 )
@@ -578,7 +578,7 @@ model.us.1991.30y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.30y, data=us
 
 us.correlation.1991.15y <- cor(us.1991$house.prices.1991, us.1991$mortgage.15y, use = "complete.obs", method = "pearson")
 us.correlation.1991.15y
-#   CORRELATION IS -0.8279419 	-> VERY STRONG CORRELATION
+#   CORRELATION IS -0.8250937	-> VERY STRONG CORRELATION
 
 model.us.1991.15y <- lm(us.1991$house.prices.1991~ us.1991$mortgage.15y, data=us.1991 )
 # summary(model.us.1991.15y)
@@ -836,8 +836,8 @@ ggplot(final.data, aes(x = Date))+
   scale_y_continuous(labels = comma)+
   scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   #scale_y_continuous(sec.axis = sec_axis(trans=~./2000, name= "house prices points CH"))+
-#  labs(caption = "Blue: CH house prices || Orange: US house prices, 1 & 5 rooms || Red: US house prices of 2nd source")+
-  labs(caption = "[b--l]: CH house prices || [o--e]: US house prices, 1 & 5 rooms || [r--d]: US house prices of 2nd source")+
+  # labs(caption = "Blue: CH house prices || Orange: US house prices, 1 & 5 rooms || Red: US house prices of 2nd source")+
+  labs(caption = "[b--l]: CH house prices || [o--e]: US house prices, 1 & 5 rooms || [r--d]: US house prices of 1st source")+
     ggtitle("Comparing house prices US and CH")
 # The data in from CH is in points :(  ???? -> NOW SOLVED :)
 
