@@ -5,7 +5,6 @@ library(tree)
 library(here)
 #install.packages("tree")
 
-
 ch.mortgage.rates <- read.csv(here("data", "ch-mortgage-rates.csv"))
 View(ch.mortgage.rates)
 
@@ -72,6 +71,8 @@ date.average.mortgage <- as.character(average.mortgage$Date)
 average.mortgage$Date <- as.Date(date.average.mortgage, formats = "%Y/%m/%d")
 View(data)
 
+data <- drop_na(data)
+
 
 ####### Decision Tree #############################################################
 
@@ -80,12 +81,6 @@ data$Date <- as.numeric(data$Date)
 data$interest.rate <- as.numeric(data$interest.rate)
 data$category <- as.factor(data$category)
 data$amount <- as.factor(data$amount)
-
-set.seed(99999)
-ratio <- 0.7
-total <- nrow(data)
-
-train <- sample(1:total, as.integer(total * ratio))
 
 data$interest.rate = as.numeric(data$interest.rate)
 
@@ -100,85 +95,27 @@ text(tree.regression.data, pretty = 0, cex = 0.75)
 
 
 
-# training error
-tree.regression.data.pred <- predict(tree.regression.data, data, type="vector")
-
-# compare predictions of regression tree with true values (visually)
-plot(tree.regression.data.pred,data$interest.rate)
-abline (0 ,1) # compare with the function f(x)=x (intercept 0, slope 1)
-
-error <- tree.regression.data.pred-data$interest.rate
-element_ID <- 1:length(error)
-plot(element_ID,error)
-title(main="Analysis of the residuals")
-abline(0 ,0, lwd=5,lty="dotted")
-abline(1.66 ,0, lwd=2, col="red", lty="dotted")
-abline(-1.66 ,0, lwd=2, col="red", lty="dotted")
-
-
-error_dataframe <- tibble(element_ID,error)
-
-
-(RSS <- sum((data[1]-tree.regression.data.pred)^2))
-# square root of the MSE = 1.65993 (in thousand of units)
-# average error on each estimation : within about 1660 units sold from the true median
-plot(element_ID,error)
-title(main="Analysis of the residuals (with average)")
-abline(0 ,0, lwd=3,lty="dotted")
-abline(1.66 ,0, lwd=2, col="red", lty="longdash")
-abline(-1.66 ,0, lwd=2, col="red", lty="longdash")
-
-#let's add a manual split in train/test for the dataset (70/30)
-#this will show the overfitting effect: very evident in fully growt (unpruned) tree
-ratio <- 0.7
-total <- nrow(data)
-
-train <- sample(1:total, as.integer(total * ratio))
-
-tree.regression.data.2 <- tree(interest.rate~., data, subset=train)
-plot(tree.regression.data.2)
-text(tree.regression.data.2, pretty=1, cex=0.75)
-#partition.tree(tree.regression.data.2)       this does not work ??????
-
-### Don't know what this is ????????
-tree.regression.data.2.pred <- predict(tree.regression.data.2, data[-train,], type="tree")
-# --> for documentation, use the predict.tree help (from the tree package) --> help(predict.tree)
-
-
 ########### Boxplots ################################################
 
 # boxplot sorted by category
 data %>%
-ggplot(aes(x = category, y = interest.rate), na.rm = TRUE)+
+ggplot(aes(x = category, y = interest.rate))+
   geom_boxplot()+
-  geom_point(aes(colour = amount, size = Date, alpha = 0.2), na.rm = TRUE)
+  geom_point(aes(colour = amount, size = Date, alpha = 0.2))
 
 # boxplot sorted by category -> facet wrap amount
 data %>%
-  ggplot(aes(x = category, y = interest.rate), na.rm = TRUE)+
+  ggplot(aes(x = category, y = interest.rate))+
   geom_boxplot()+
-  geom_point(aes(colour = amount, size = Date, alpha = 0.2), na.rm = TRUE)+
+  geom_point(aes(colour = amount, size = Date, alpha = 0.2))+
   facet_wrap(~amount)
-
-# boxplot sorted by category -> facet wrap date
-data %>%
-  ggplot(aes(x = category, y = interest.rate), na.rm = TRUE)+
-  geom_boxplot()+
-  geom_point(aes(colour = amount, size = 5, alpha = 0.2), na.rm = TRUE)+
-  facet_wrap(~Date)
-
-
-# boxplot sorted by amount
-data %>%
-  ggplot(aes(x = amount, y = interest.rate), na.rm = TRUE)+
-  geom_boxplot()+
-  geom_point(aes(colour = category, size = Date, alpha = 0.2), na.rm = TRUE)
 
 # boxplot sorted by amount -> facet wrap category
 data %>%
-  ggplot(aes(x = amount, y = interest.rate), na.rm = TRUE)+
+  ggplot(aes(x = amount, y = interest.rate))+
   geom_boxplot()+
-  geom_point(aes(colour = category, size = Date, alpha = 0.2), na.rm = TRUE)+
+  geom_point(aes(colour = category, size = Date, alpha = 0.2))+
+  theme(axis.text.x = element_text(angle = 60,vjust = 0.5,hjust = 1))+
   facet_wrap(~category)
 
 ###### other plots #########################
@@ -186,23 +123,14 @@ data %>%
 # plot
 data %>%
   ggplot(aes(x = Date, y =interest.rate))+
-  geom_point(aes(na.rm = TRUE, size = amount, color = category, alpha = 0.2))+
+  geom_point(aes(size = amount, color = category, alpha = 0.2))+
  # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH mortgage rates")
 
 data %>%
   ggplot(aes(x = Date, y =interest.rate))+
-  geom_point(aes(na.rm = TRUE, size = amount, color = category, alpha = 0.2))+
-  geom_smooth(method = lm)+
-  # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
-  theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
-  ggtitle("CH mortgage rates")+
-  facet_wrap(~category)
-
-data %>%
-  ggplot(aes(x = Date, y =interest.rate))+
-  geom_point(aes(na.rm = TRUE, size = 1, color = amount, alpha = 0.2))+
+  geom_point(aes(size = amount, color = category, alpha = 0.2))+
   geom_smooth(method = lm)+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
@@ -213,7 +141,7 @@ data %>%
 data %>% filter(category == "Fixed") %>%
   ggplot(aes(x = Date, y =interest.rate))+
   geom_smooth(method = lm)+
-  geom_point(aes(na.rm = TRUE, size = 1, color = amount, alpha = 0.2))+
+  geom_point(aes(size = 1, color = amount, alpha = 0.2))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH mortgage rates - Fixed interest rates")
@@ -223,7 +151,7 @@ data %>% filter(category == "Fixed") %>%
 data %>% filter(category == "Fixed") %>%
   ggplot(aes(x = Date, y =interest.rate))+
   geom_smooth()+
-  geom_point(aes(na.rm = TRUE, size = 1, color = amount, alpha = 0.2))+
+  geom_point(aes(size = 1, color = amount, alpha = 0.2))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH mortgage rates - Fixed interest rates")
@@ -232,7 +160,7 @@ data %>% filter(category == "Fixed") %>%
 data %>% filter(category == "Linked BR") %>%
   ggplot(aes(x = Date, y =interest.rate))+
   geom_smooth(method = lm)+
-  geom_point(aes(na.rm = TRUE, size = 1, color = amount, alpha = 0.2))+
+  geom_point(aes(size = 1, color = amount, alpha = 0.2))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH mortgage rates - Linked BR")
@@ -241,7 +169,7 @@ data %>% filter(category == "Linked BR") %>%
 data %>% filter(category == "NL BR") %>%
   ggplot(aes(x = Date, y =interest.rate))+
   geom_smooth(method = lm)+
-  geom_point(aes(na.rm = TRUE, size = 1, color = amount, alpha = 0.2))+
+  geom_point(aes(size = 1, color = amount, alpha = 0.2))+
   # scale_x_date(date_breaks = "years" , date_labels = "%Y")+
   theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1))+
   ggtitle("CH mortgage rates - NL BR")
