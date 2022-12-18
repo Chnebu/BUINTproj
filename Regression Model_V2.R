@@ -3,6 +3,7 @@
 #install.packages("ggiraph")
 #install.packages("moonBook")
 
+
 library(tidyverse)
 library(scales)
 library(ggplot2)
@@ -17,9 +18,15 @@ library(ggiraph)
 library(ggiraphExtra)
 library(moonBook)
 
+
+
 dataset <- read.csv(here("data", "ch.csv"))
 
+<<<<<<< Updated upstream
 View(dataset)
+=======
+
+>>>>>>> Stashed changes
 head(dataset)
 
 ################### skewness Lea ############################
